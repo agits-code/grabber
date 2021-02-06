@@ -19,6 +19,7 @@
 <h1>My files</h1>
  <ul>
      <?php foreach ($files as $file) : ?>
+     <ul>
        <li>
            <?= "<b>Link for download :</b>".$file->link; ?>
        </li>
@@ -34,6 +35,7 @@
          <li>
              <?= "<b>Last update :</b>".$file->last_update; ?>
          </li>
+     </ul>
      <?php endforeach; ?>
 
 

@@ -21,19 +21,16 @@ class QueryBuilder
 
     public function insert($filename,$filedate,$filesize,$md5,$link)
     {
-        //
 
         try {
           $statment = $this->pdo->prepare("INSERT INTO myfiles (filename , filedate , filesize , md5 , link )
-        VALUES ($filename,
-         $filedate,
-         $filesize,
-         $md5,
-         $link)");
-          $statment->execute();
+        VALUES ('$filename','$filedate','$filesize','$md5','$link')");
+
+
         } catch (Exception $e)
         {
-           die($e);
+           var_dump($e);
         }
+        $statment->execute();
     }
 }
