@@ -1,11 +1,20 @@
 <?php
 require "GrabberTool.php";
-$elenco = GrabberTool::getItems('https://assoc-datafeeds-eu.amazon.com/datafeed/listFeeds');
-//var_dump($elenco[24]['name']);die();
-foreach ($elenco as $item) {
-    $file = $app['database']->insert($item['name'], $item['date'], $item['size'], $item['code'], $item['link']);
+//$elenco = GrabberTool::getItems('https://assoc-datafeeds-eu.amazon.com/datafeed/listFeeds');
+
+//foreach ($elenco as $item) {
+//    $file = $app['database']->insert($item['name'], $item['date'], $item['size'], $item['code'], $item['link']);
+//}
+$app['database']->todo();
+foreach ($app['database']->selectAll('myfiles') as $item)
+{
+   if($item->todo) {
+       var_dump($item->link);
+       echo "<br>";
+   }
 }
-$files = $app['database']->selectAll('myfiles');
+//$files = $app['database']->selectAll('myfiles');
+
 
 require 'views/index.view.php';
 //

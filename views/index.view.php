@@ -11,15 +11,13 @@
        <li>
            <a href="/">Home</a>
        </li>
-       <li>
-           <?php var_dump(trim($_SERVER['REQUEST_URI'],"/"));?>
-       </li>
+
    </ul>
 </nav>
 <h1>My files</h1>
  <ul>
      <?php foreach ($files as $file) : ?>
-     <ul>
+     <ol>
        <li>
            <?= "<b>Link for download :</b>".$file->link; ?>
        </li>
@@ -35,7 +33,8 @@
          <li>
              <?= "<b>Last update :</b>".$file->last_update; ?>
          </li>
-     </ul>
+     </ol>
+     ----------------------------------------------------------------
      <?php endforeach; ?>
 
 
