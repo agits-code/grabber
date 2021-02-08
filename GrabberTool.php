@@ -59,18 +59,11 @@ class GrabberTool
             $els = $element->getElementsByTagName('td');
 
             if(is_object($els->item(0))) {
-                //TODO escludere file xml
-              /*  $pattern = '/\.(.*?).gz/s';
 
-                if (preg_match($pattern, $els->item(0)->nodeValue, $risultato)) {
-                    $extension = $risultato[1];
-
-                }
-                    if ($extension == "xml")  continue; */
                 self::$row['name'] = $els->item(0)->nodeValue;
             }
             if(is_object($els->item(1))) {
-                //date("jS F, Y", strtotime("11.12.10"));
+
                 self::$row['date'] = date("Y-m-d H:i:s",strtotime($els->item(1)->nodeValue));
 
             }
@@ -98,8 +91,9 @@ class GrabberTool
     }
 
     public static function downloadFile($file_gz_url, $verbose = false) {
-        // TODO : costruire $url x download
-        $fileName = basename($file_gz_url);
+
+        $fileName = "../../downloads/".basename($file_gz_url);
+
         if (($curl = curl_init($file_gz_url)) === false) {
             throw new Exception("curl_init error for url $file_gz_url.");
         }
@@ -139,7 +133,7 @@ class GrabberTool
     public static function decompressGz ($file_gz)
     {
 
-        $file_name = $file_gz;
+        $file_name = "../../downloads/".$file_gz;
 
 
 // Raising this value may increase performance
@@ -165,7 +159,7 @@ class GrabberTool
 
     public static function csvReader ($file_csv)
     {
-
+       //TODO sistemare percorso file e lettura7scrittura  pointer da DB
        // $filename = self::decompressGz($url);
         $filename = $file_csv;
         $filenamepointer = 'pointer.txt';
@@ -188,9 +182,10 @@ class GrabberTool
 
 
         $pointer =intval($posizione[0]);
+        //TODO scrivere valore nella colonna POINTER
         if (filesize($file) === $pointer){
             echo "ok";
-            //TODO scrivere valore nella colonna POINTER
+            //TODO scrivere valore true nella colonna "letto"
         }
 // apro file
         $h = fopen($file, "r");

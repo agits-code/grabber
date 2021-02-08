@@ -19,14 +19,7 @@ class QueryBuilder
         return $statement->fetchAll(PDO::FETCH_CLASS);
     }
 
-    public function selectOne($table)
-    {
-        $statement = $this->pdo->prepare("select * from {$table}");
 
-        $statement->execute();
-
-        return $statement->fetch(PDO::FETCH_ASSOC);
-    }
 
     public function insert($filename,$filedate,$filesize,$md5,$link)
     {

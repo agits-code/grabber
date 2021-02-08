@@ -12,3 +12,4 @@ require 'core/database/QueryBuilder.php';
 $app['database'] = new QueryBuilder(
     Connection::make($app['config']['database'])
 );
+var_dump($app);
