@@ -160,106 +160,40 @@ class GrabberTool
         return $out_file_name;
     }
 
-    public static function csvReader1 ($file_csv,$db)
-    {
-        $filename = "getFeed?filename=".str_replace('.gz', '', $file_csv);;
-        // File completo di percorso
-        $file = self::$path . $filename;
-        // Controllo se il file è leggibile
-        if ( ! is_readable( $file ) ) {
-            die( 'Il file non è leggibile oppure non esiste!' );
-        }
-        $pointer = $db->getPointer('myfiles',$file_csv);
-
-        // apro file
-        $h = fopen($file, "r");
-        fseek($h, $pointer);
-
-   /*     if (feof($h)){
-            echo "ok";
-          //  $db->setRead($file_csv);
-
-        } else { */
-            $startTime = time();
-            while (($data = fgetcsv($h, 4000)) !== FALSE) {
-                $the_big_array[ftell($h)] = $data;
-                $pos = ftell($h) ;
-                $db->setPointer($file_csv, intval($pos));
-               // var_dump($the_big_array[ftell($h)]);
-                var_dump($pos."\n");
-                if (time() - $startTime > 1) break;
-            }
-            fclose($h);
-      /*  } */
-    }
-
 
     public static function csvReader($file_csv,$db)
     {
         $filename = "getFeed?filename=".str_replace('.gz', '', $file_csv);;
-      // $filenamepointer = 'pointer.txt';
-// Percorso da cui prelevare il file
 
-
-// File completo di percorso
         $file = self::$path . $filename;
-     //   $file_pointer = $filenamepointer;
-// Controllo se il file è leggibile
+
         if ( ! is_readable( $file ) ) {
             die( 'Il file non è leggibile oppure non esiste!' );
         }
 
-     //  $source_pointer = fopen($file_pointer, 'r' );
-
-     //  $posizioni = fread($source_pointer,4000);
-    //    fclose($source_pointer);
-    //   $posizione = explode(",",$posizioni);
-
-       //TODO $pointer viene passato come parametro
-        //$pointer = $db->getPointer('myfiles',$file_csv);
-     //  $pointer =intval($posizione[0]);
-       // $pointer = $db->getPointer('myfiles',$file_csv);
-        //TODO scrivere valore nella colonna POINTER
-        //if (filesize($file) === $pointer){
         if (filesize($file) === intval($db->getPointer('myfiles',$file_csv))){
-            echo "ok";
+            echo "File: ".$file_csv." is read";
 
             $db->setRead($file_csv);
         }
-// apro file
+
         $h = fopen($file, "r");
-   /*   if ( ! is_readable( $file_pointer ) ) {
-           die( 'Il file non è leggibile oppure non esiste!' );
-       }*/
+
         fseek($h,($db->getPointer('myfiles',$file_csv)));
-        //$line_read = 0;
 
         $startTime = time();
         while (($data =fgetcsv($h, 4000)) !== FALSE)
         {
+            $the_big_array[ftell($h)] = $data;
+            $pos = ftell($h);
+            $db->setPointer($file_csv,intval($pos));
+            //var_dump($the_big_array[ftell($h)]);
+            var_dump($file_csv."----------".$pos."||||||||".filesize($file)."\n");
 
-
-                $the_big_array[ftell($h)] = $data;
-
-
-
-               $pos = ftell($h);
-               $db->setPointer($file_csv,intval($pos));
-
-         //  $add_pos = fopen($file_pointer,"w+");
-        //  fwrite($add_pos,$pos);
-
-               //$line_read++;
-            // var_dump($the_big_array[ftell($h)]);
-              var_dump($file_csv."----------".$pos."||||||||".filesize($file)."\n");
-         // fclose($add_pos);
-           // if ($line_read>10) break;
             if (time()-$startTime>1) break;
         }
 
-
         fclose($h);
-
     }
 }
 
