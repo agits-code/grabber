@@ -3,6 +3,7 @@
 error_reporting(E_STRICT | E_ALL);
 class GrabberTool
 {
+    private static $path = "../../downloads/";
     private static $row;
     private static $username = 'hdblit-21';
     private static $password = 'J-!35XN^f$bCH%k#';
@@ -76,7 +77,7 @@ class GrabberTool
 
             }
             if(is_object($els->item(4))) {
-                self::$row['link'] = "https://assoc-datafeeds-eu.amazon.com/datafeed/getFeed?filename=".($els->item(4)->firstChild->getAttribute('href'));
+                self::$row['link'] = "https://assoc-datafeeds-eu.amazon.com/datafeed/".($els->item(4)->firstChild->getAttribute('href'));
 
             }
 
@@ -90,9 +91,12 @@ class GrabberTool
 
     }
 
-    public static function downloadFile($file_gz_url, $verbose = false) {
 
-        $fileName = "../../downloads/".basename($file_gz_url);
+
+    public static function downloadFile($file_gz_url) {
+
+        $fileName = self::$path.basename($file_gz_url); //./../downloads/it_standardized_camera_mp_20210201_29.delta.csv.gz"
+
 
         if (($curl = curl_init($file_gz_url)) === false) {
             throw new Exception("curl_init error for url $file_gz_url.");
@@ -116,24 +120,23 @@ class GrabberTool
             preg_match('#^.*/(.+)$#', $eurl, $match);
             fclose($fp);
             rename($fileName, "$targetDir{$match[1]}");
-            $fileName = "$targetDir{$match[1]}";
+            $fileName = $targetDir($match[1]);
+
+
 
         } else {
-            $verbose = true;
+
             fclose($fp);
         }
 
         curl_close($curl);
-        if ($verbose === true) {
-            echo "Done.\n";
-        }
-        return $fileName;
+
     }
 
     public static function decompressGz ($file_gz)
     {
 
-        $file_name = "../../downloads/".$file_gz;
+        $file_name = self::$path.$file_gz;
 
 
 // Raising this value may increase performance
@@ -157,42 +160,78 @@ class GrabberTool
         return $out_file_name;
     }
 
-    public static function csvReader ($file_csv)
+    public static function csvReader1 ($file_csv,$db)
     {
-       //TODO sistemare percorso file e lettura7scrittura  pointer da DB
-       // $filename = self::decompressGz($url);
-        $filename = $file_csv;
-        $filenamepointer = 'pointer.txt';
+        $filename = "getFeed?filename=".str_replace('.gz', '', $file_csv);;
+        // File completo di percorso
+        $file = self::$path . $filename;
+        // Controllo se il file è leggibile
+        if ( ! is_readable( $file ) ) {
+            die( 'Il file non è leggibile oppure non esiste!' );
+        }
+        $pointer = $db->getPointer('myfiles',$file_csv);
+
+        // apro file
+        $h = fopen($file, "r");
+        fseek($h, $pointer);
+
+   /*     if (feof($h)){
+            echo "ok";
+          //  $db->setRead($file_csv);
+
+        } else { */
+            $startTime = time();
+            while (($data = fgetcsv($h, 4000)) !== FALSE) {
+                $the_big_array[ftell($h)] = $data;
+                $pos = ftell($h) ;
+                $db->setPointer($file_csv, intval($pos));
+               // var_dump($the_big_array[ftell($h)]);
+                var_dump($pos."\n");
+                if (time() - $startTime > 1) break;
+            }
+            fclose($h);
+      /*  } */
+    }
+
+
+    public static function csvReader($file_csv,$db)
+    {
+        $filename = "getFeed?filename=".str_replace('.gz', '', $file_csv);;
+      // $filenamepointer = 'pointer.txt';
 // Percorso da cui prelevare il file
-        $path = '';
+
 
 // File completo di percorso
-        $file = $path . $filename;
-        $file_pointer = $path.$filenamepointer;
+        $file = self::$path . $filename;
+     //   $file_pointer = $filenamepointer;
 // Controllo se il file è leggibile
         if ( ! is_readable( $file ) ) {
             die( 'Il file non è leggibile oppure non esiste!' );
         }
 
-        $source_pointer = fopen($file_pointer, 'r' );
+     //  $source_pointer = fopen($file_pointer, 'r' );
 
-        $posizioni = fread($source_pointer,4000);
-        fclose($source_pointer);
-        $posizione = explode(",",$posizioni);
+     //  $posizioni = fread($source_pointer,4000);
+    //    fclose($source_pointer);
+    //   $posizione = explode(",",$posizioni);
 
-
-        $pointer =intval($posizione[0]);
+       //TODO $pointer viene passato come parametro
+        //$pointer = $db->getPointer('myfiles',$file_csv);
+     //  $pointer =intval($posizione[0]);
+       // $pointer = $db->getPointer('myfiles',$file_csv);
         //TODO scrivere valore nella colonna POINTER
-        if (filesize($file) === $pointer){
+        //if (filesize($file) === $pointer){
+        if (filesize($file) === intval($db->getPointer('myfiles',$file_csv))){
             echo "ok";
-            //TODO scrivere valore true nella colonna "letto"
+
+            $db->setRead($file_csv);
         }
 // apro file
         $h = fopen($file, "r");
-        if ( ! is_readable( $file_pointer ) ) {
-            die( 'Il file non è leggibile oppure non esiste!' );
-        }
-        fseek($h,$pointer);
+   /*   if ( ! is_readable( $file_pointer ) ) {
+           die( 'Il file non è leggibile oppure non esiste!' );
+       }*/
+        fseek($h,($db->getPointer('myfiles',$file_csv)));
         //$line_read = 0;
 
         $startTime = time();
@@ -204,15 +243,16 @@ class GrabberTool
 
 
 
-               $pos = ftell($h).",";
+               $pos = ftell($h);
+               $db->setPointer($file_csv,intval($pos));
 
-            $add_pos = fopen($file_pointer,"w+");
-           fwrite($add_pos,$pos);
+         //  $add_pos = fopen($file_pointer,"w+");
+        //  fwrite($add_pos,$pos);
 
                //$line_read++;
-               var_dump($the_big_array[ftell($h)]);
-
-            fclose($add_pos);
+            // var_dump($the_big_array[ftell($h)]);
+              var_dump($file_csv."----------".$pos."||||||||".filesize($file)."\n");
+         // fclose($add_pos);
            // if ($line_read>10) break;
             if (time()-$startTime>1) break;
         }
