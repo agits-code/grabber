@@ -19,7 +19,7 @@ class GrabberTool
         if (($curl = curl_init($url)) == false) {
             throw new Exception("curl_init error for url $url.");
         }
-        // echo "Reading $url ... ";
+
         curl_setopt($curl, CURLOPT_HTTPHEADER, array(
 
             'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36',
@@ -95,7 +95,7 @@ class GrabberTool
 
     public static function downloadFile($file_gz_url) {
 
-        $fileName = self::$path.basename($file_gz_url); //./../downloads/it_standardized_camera_mp_20210201_29.delta.csv.gz"
+        $fileName = self::$path.basename($file_gz_url);
 
 
         if (($curl = curl_init($file_gz_url)) === false) {
@@ -120,7 +120,7 @@ class GrabberTool
             preg_match('#^.*/(.+)$#', $eurl, $match);
             fclose($fp);
             rename($fileName, "$targetDir{$match[1]}");
-            $fileName = $targetDir($match[1]);
+           // $fileName = $targetDir($match[1]);
 
 
 
@@ -153,7 +153,7 @@ class GrabberTool
             // Both fwrite and gzread and binary-safe
             fwrite($out_file, gzread($file, $buffer_size));
         }
-        echo "decompress Done :".$out_file_name;
+       // echo "decompress Done :".$out_file_name;
 // Files are done, close files
         fclose($out_file);
         gzclose($file);
@@ -187,8 +187,7 @@ class GrabberTool
             $the_big_array[ftell($h)] = $data;
             $pos = ftell($h);
             $db->setPointer($file_csv,intval($pos));
-            //var_dump($the_big_array[ftell($h)]);
-            var_dump($file_csv."----------".$pos."||||||||".filesize($file)."\n");
+            var_dump($the_big_array[ftell($h)]);
 
             if (time()-$startTime>1) break;
         }
