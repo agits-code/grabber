@@ -8,9 +8,13 @@
 <nav>
    <ul>
        <li><a href="/about">About</a></li>
-       <li>
-           <a href="/">Home</a>
-       </li>
+
+       <li><a href="/download">Download</a></li>
+
+       <li><a href="/decompress">Decompress</a></li>
+
+       <li><a href="/read">Read</a></li>
+
 
    </ul>
 </nav>
