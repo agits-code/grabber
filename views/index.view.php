@@ -5,26 +5,25 @@
     <title>grabber</title>
 </head>
 <body>
+<h1>My files</h1>
 <nav>
    <ul>
        <li><a href="/about">About</a></li>
 
-       <li><a href="/download">Download</a></li>
+       <li><a href="/download" target="_blank">Download</a></li>
 
        <li><a href="/decompress">Decompress</a></li>
 
-       <li><a href="/read">Read</a></li>
+       <li><a href="/read" target="_blank">Read</a></li>
 
 
    </ul>
 </nav>
-<h1>My files</h1>
+<h3> in progress</h3>
  <ul>
      <?php foreach ($files as $file) : ?>
      <ol>
-       <li>
-           <?= "<b>Link for download :</b>".$file->link; ?>
-       </li>
+
          <li>
              <?= "<b>File name :</b>".$file->filename; ?>
          </li>
@@ -32,10 +31,7 @@
              <?= "<b>File size :</b>".$file->filesize; ?>
          </li>
          <li>
-             <?= "<b>Date created :</b>".$file->filedate; ?>
-         </li>
-         <li>
-             <?= "<b>Last update :</b>".$file->last_update; ?>
+             <?= "<b>Progress :</b>".$file->pointer; ?>
          </li>
      </ol>
      ----------------------------------------------------------------

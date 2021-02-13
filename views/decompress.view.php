@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>decompressi</title>
+    <title>decompress</title>
 </head>
 <body>
 <nav>
@@ -13,7 +13,7 @@
         </li>
     </ul>
 </nav>
-<h1>file decompressi</h1>
+<h1>file decompresso</h1>
 <h3><?= $step; ?></h3>
 
 </body>

@@ -91,7 +91,39 @@ class GrabberTool
 
     }
 
+    public static function downloadFile1($row,$db)
+    {
+       $file_source = $row->link;
+       $file_target = self::$path.basename($file_source);
 
+        if (($rh = curl_init($file_source)) === false) {
+            throw new Exception("curl_init error for url $file_source.");
+        }
+        curl_setopt_array($rh, self::$options);
+        curl_setopt($rh, CURLOPT_USERPWD, self::$username.":".self::$password);
+        if (($wh = fopen($file_target, "wb")) === false) {
+            throw new Exception("fopen error for filename $file_target");
+        }
+        curl_setopt($rh, CURLOPT_FILE, $wh);
+        if (($what = curl_exec($rh)) === false) {
+            fclose($wh);
+            unlink($file_target);
+            throw new Exception("curl_exec error for url $file_source.");
+        }
+
+        $startTime = time();
+        while (!feof($wh)) {
+
+            echo "->";
+
+            flush();
+            if (time()-$startTime>1) break;
+        }
+
+        fclose($rh);
+        fclose($wh);
+
+    }
 
     public static function downloadFile($file_gz_url) {
 
@@ -120,9 +152,6 @@ class GrabberTool
             preg_match('#^.*/(.+)$#', $eurl, $match);
             fclose($fp);
             rename($fileName, "$targetDir{$match[1]}");
-           // $fileName = $targetDir($match[1]);
-
-
 
         } else {
 

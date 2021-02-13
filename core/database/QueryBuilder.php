@@ -19,6 +19,29 @@ class QueryBuilder
         return $statement->fetchAll(PDO::FETCH_CLASS);
     }
 
+    public function selectProcessing($table)
+    {
+
+        $statement = $this->pdo->prepare("select * from {$table} where isread=false AND pointer > 0");
+
+        $statement->execute();
+
+        $item = $statement->fetchAll(PDO::FETCH_CLASS);
+        return $item;
+    }
+
+    public function getCursor($table,$filename)
+    {
+
+        $statement = $this->pdo->prepare("select * from {$table} where filename = '$filename'");
+
+        $statement->execute();
+
+        $item = $statement->fetchAll(PDO::FETCH_CLASS);
+        return $item[0]->cursor;
+    }
+
+
     public function getPointer($table,$filename)
     {
 
@@ -34,6 +57,18 @@ class QueryBuilder
     {
         try {
             $statment = $this->pdo->prepare("UPDATE myfiles SET pointer='$cursor' WHERE filename='$filename'");
+
+        } catch (Exception $e)
+        {
+            //var_dump($e);
+        }
+        $statment->execute();
+    }
+
+    public function setCursor($filename,$cursor)
+    {
+        try {
+            $statment = $this->pdo->prepare("UPDATE myfiles SET cursor='$cursor' WHERE filename='$filename'");
 
         } catch (Exception $e)
         {

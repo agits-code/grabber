@@ -16,7 +16,7 @@ foreach ($elenco as $item)
 $app['database']->clearOld();
 
 
-$files = $app['database']->selectAll('myfiles');
+$files = $app['database']->selectProcessing('myfiles');
 
 
 require 'views/index.view.php';

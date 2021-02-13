@@ -1,8 +1,8 @@
 <?php
 require "GrabberTool.php";
 foreach ($app['database']->selectAll('myfiles') as $item) {
-    //download->decompress->read
-    if ($item->todo) {
+
+    if ($item->decompressed) {
 
 
         if (!$item->isread) {
