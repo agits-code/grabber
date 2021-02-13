@@ -91,7 +91,52 @@ class GrabberTool
 
     }
 
-    public static function downloadFile1($row,$db)
+    public static function downloadFile1no($row,$db) //-> scarica 971 byte
+    {
+        $ch = curl_init($row->link);
+        $outp =  fopen(self::$path.basename($row->link), 'w+');
+        $download_id = $row->ID;
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_NOPROGRESS, true );
+        curl_setopt($ch, CURLOPT_FILE, $outp); //save the file to here
+        curl_setopt( $ch, CURLOPT_PROGRESSFUNCTION, function($resource, $download_size, $downloaded_size, $upload_size, $uploaded_size) use ($download_id) {
+            if ( $download_size == 0 ) {
+                $progress = 0;
+            } else {
+                $progress = round( $downloaded_size * 100 / $download_size );
+            }
+
+            // if download complete trigger completed function
+            if($progress == 100) {
+                echo ($download_id);
+            }
+
+        });
+        curl_exec($ch);
+    }
+
+    public static function downloadFile1a($row,$db) //->non funziona
+    {
+        $ch = curl_init();
+        /**
+         * Set the URL of the page or file to download.
+         */
+        curl_setopt($ch, CURLOPT_URL,$row->link);
+
+        $fp = fopen(self::$path.basename($row->link), 'w+');
+        /**
+         * Ask cURL to write the contents to a file
+         */
+        curl_setopt($ch, CURLOPT_FILE, $fp);
+
+
+       curl_exec ($ch);
+
+        curl_close ($ch);
+        fclose($fp);
+    }
+
+    public static function downloadFile1($row,$db)// -> funziona
     {
        $file_source = $row->link;
        $file_target = self::$path.basename($file_source);
@@ -111,16 +156,10 @@ class GrabberTool
             throw new Exception("curl_exec error for url $file_source.");
         }
 
-        $startTime = time();
-        while (!feof($wh)) {
 
-            echo "->";
 
-            flush();
-            if (time()-$startTime>1) break;
-        }
 
-        fclose($rh);
+
         fclose($wh);
 
     }
@@ -218,7 +257,7 @@ class GrabberTool
             $db->setPointer($file_csv,intval($pos));
             var_dump($the_big_array[ftell($h)]);
 
-            if (time()-$startTime>1) break;
+            if (time()-$startTime>10) break;
         }
 
         fclose($h);
