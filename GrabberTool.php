@@ -82,7 +82,7 @@ class GrabberTool
             }
 
            if(self::$row) {
-               //TODO scrivere elemento nel DB
+
 
                $riga[] = self::$row;
            }
@@ -91,80 +91,65 @@ class GrabberTool
 
     }
 
-    public static function downloadFile1no($row,$db) //-> scarica 971 byte
+
+    public static function downloadFileok($row,$db) // perfetto
     {
-        $ch = curl_init($row->link);
-        $outp =  fopen(self::$path.basename($row->link), 'w+');
-        $download_id = $row->ID;
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_NOPROGRESS, true );
-        curl_setopt($ch, CURLOPT_FILE, $outp); //save the file to here
-        curl_setopt( $ch, CURLOPT_PROGRESSFUNCTION, function($resource, $download_size, $downloaded_size, $upload_size, $uploaded_size) use ($download_id) {
-            if ( $download_size == 0 ) {
-                $progress = 0;
-            } else {
-                $progress = round( $downloaded_size * 100 / $download_size );
-            }
+        set_time_limit(0);
 
-            // if download complete trigger completed function
-            if($progress == 100) {
-                echo ($download_id);
-            }
-
-        });
-        curl_exec($ch);
-    }
-
-    public static function downloadFile1a($row,$db) //->non funziona
-    {
-        $ch = curl_init();
-        /**
-         * Set the URL of the page or file to download.
-         */
-        curl_setopt($ch, CURLOPT_URL,$row->link);
-
-        $fp = fopen(self::$path.basename($row->link), 'w+');
-        /**
-         * Ask cURL to write the contents to a file
-         */
-        curl_setopt($ch, CURLOPT_FILE, $fp);
-
-
-       curl_exec ($ch);
-
-        curl_close ($ch);
-        fclose($fp);
-    }
-
-    public static function downloadFile1($row,$db)// -> funziona
-    {
-       $file_source = $row->link;
-       $file_target = self::$path.basename($file_source);
-
-        if (($rh = curl_init($file_source)) === false) {
-            throw new Exception("curl_init error for url $file_source.");
-        }
-        curl_setopt_array($rh, self::$options);
-        curl_setopt($rh, CURLOPT_USERPWD, self::$username.":".self::$password);
-        if (($wh = fopen($file_target, "wb")) === false) {
-            throw new Exception("fopen error for filename $file_target");
-        }
-        curl_setopt($rh, CURLOPT_FILE, $wh);
-        if (($what = curl_exec($rh)) === false) {
-            fclose($wh);
-            unlink($file_target);
-            throw new Exception("curl_exec error for url $file_source.");
+        $fileName = self::$path.basename($row->link);
+        if (($row->filesize) - ($row->filecursor) === 0) {
+            $db->setDownloaded($row->filename);
+            echo "file scaricato";
         }
 
 
+        if (($curl = curl_init($row->link)) === false) {
+            throw new Exception("curl_init error for url $row->link.");
+        }
+        curl_setopt_array($curl, self::$options);
+        curl_setopt($curl, CURLOPT_USERPWD, self::$username.":".self::$password);
+        curl_setopt($curl,CURLOPT_TIMEOUT, 50);//non cambia nulla
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);//non cambia nulla
+
+        if (($fp = fopen($fileName, "a+")) === false) {
+            throw new Exception("fopen error for filename $fileName");
+        }
+        curl_setopt($curl, CURLOPT_FILE, $fp);
+        #################################################################
+        //TODO così scarica 500 byte --> come scaricare altri?
+        $startTime = time();
+       // $steps_reads = 0; // questo funziona
+        while (($init = $db->getCursor($row->filename)) < ($row->filesize)) {
+
+                                 // echo "init: ".$init."--filesize: ".$row->filesize."\n";
+            $end = ((($row->filesize)-$init) >500) ? ($init + 500) : ($row->filesize);
+            curl_setopt($curl, CURLOPT_RANGE, '$init-$end');
+                                // echo "end: ".$end."<br>";
+            $db->setCursor($row->filename,$end);
+          //  $steps_reads = $steps_reads + 1;
+           if (time()-$startTime>5) exit("scaricati $end byte di $row->filesize");
+          //  if ($steps_reads>10000) exit; // questo funziona
+        }
+        ################################################################# */
+
+        if (curl_exec($curl) === false) {
+            fclose($fp);
+            unlink($fileName);
+            throw new Exception("curl_exec error for url $row->link.");
 
 
+        } else {
 
-        fclose($wh);
+            fclose($fp);
+        }
 
+        curl_close($curl);
     }
 
-    public static function downloadFile($file_gz_url) {
+
+
+    public static function downloadFile1($file_gz_url) // ok download in unica soluzione
+    {
 
         $fileName = self::$path.basename($file_gz_url);
 
@@ -201,18 +186,23 @@ class GrabberTool
 
     }
 
-    public static function decompressGz ($file_gz)
+
+
+
+    public static function decompressGz ($row) // ok perfetto
     {
 
-        $file_name = self::$path.$file_gz;
-
+        $file_name = self::$path.basename($row->link);
+        if (( $file = gzopen($file_name, 'rb')) === false) {
+            throw new Exception("fopen error for filename $file_name");
+        }
 
 // Raising this value may increase performance
         $buffer_size = 4096; // read 4kb at a time
         $out_file_name = str_replace('.gz', '', $file_name);
 
 // Open our files (in binary mode)
-        $file = gzopen($file_name, 'rb');
+       // $file = gzopen($file_name, 'rb');
         $out_file = fopen($out_file_name, 'wb');
 
 // Keep repeating until the end of the input file
@@ -229,7 +219,7 @@ class GrabberTool
     }
 
 
-    public static function csvReader($file_csv,$db)
+    public static function csvReader($file_csv,$db) // ok perfetto
     {
         $filename = "getFeed?filename=".str_replace('.gz', '', $file_csv);;
 
@@ -257,7 +247,7 @@ class GrabberTool
             $db->setPointer($file_csv,intval($pos));
             var_dump($the_big_array[ftell($h)]);
 
-            if (time()-$startTime>10) break;
+            if ((time()-$startTime>10) or (filesize($file) === intval($pos))) break;
         }
 
         fclose($h);

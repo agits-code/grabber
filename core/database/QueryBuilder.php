@@ -19,10 +19,10 @@ class QueryBuilder
         return $statement->fetchAll(PDO::FETCH_CLASS);
     }
 
-    public function selectProcessing($table)
+    public function selectProcessing()
     {
 
-        $statement = $this->pdo->prepare("select * from {$table} where isread=false AND pointer > 0");
+        $statement = $this->pdo->prepare("select * from myfiles where ((downloaded=false AND filecursor >0) OR (isread=false AND pointer > 0))");
 
         $statement->execute();
 
@@ -30,15 +30,31 @@ class QueryBuilder
         return $item;
     }
 
-    public function getCursor($table,$filename)
+    public function downloadedFiles()
+    {
+        $statement = $this->pdo->prepare("select * from myfiles where downloaded=true");
+        $statement->execute();
+
+        return $statement->fetchAll(PDO::FETCH_CLASS);
+    }
+
+    public function decompressedFiles()
+    {
+        $statement = $this->pdo->prepare("select * from myfiles where decompressed=true");
+        $statement->execute();
+
+        return $statement->fetchAll(PDO::FETCH_CLASS);
+    }
+
+    public function getCursor($filename)
     {
 
-        $statement = $this->pdo->prepare("select * from {$table} where filename = '$filename'");
+        $statement = $this->pdo->prepare("select * from myfiles where filename = '$filename'");
 
         $statement->execute();
 
         $item = $statement->fetchAll(PDO::FETCH_CLASS);
-        return $item[0]->cursor;
+        return $item[0]->filecursor;
     }
 
 
@@ -68,7 +84,7 @@ class QueryBuilder
     public function setCursor($filename,$cursor)
     {
         try {
-            $statment = $this->pdo->prepare("UPDATE myfiles SET cursor='$cursor' WHERE filename='$filename'");
+            $statment = $this->pdo->prepare("UPDATE myfiles SET filecursor='$cursor' WHERE filename='$filename'");
 
         } catch (Exception $e)
         {
@@ -106,10 +122,10 @@ class QueryBuilder
 
     public function skipFiles()
     {
-
+        //  WHERE (filename regexp '^([a-z_.-]+)\.([a-z.]{2,6})$' or filename LIKE '%.xml.%')");
         try {
             $statment = $this->pdo->prepare("UPDATE myfiles SET todo=false 
-             WHERE (filename regexp '^([a-z_.-]+)\.([a-z.]{2,6})$' or filename LIKE '%.xml.%')");
+             WHERE (filename LIKE '%.xml.%')");
 
         } catch (Exception $e)
         {

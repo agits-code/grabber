@@ -31,8 +31,9 @@
              <?= "<b>File size :</b>".$file->filesize; ?>
          </li>
          <li>
-             <?= "<b>Progress :</b>".$file->pointer; ?>
+             <?= ($file->pointer) ? "<b>Reading progress :</b>.$file->pointer" : "<b>Download progress :</b>.$file->filecursor";?>
          </li>
+
      </ol>
      ----------------------------------------------------------------
      <?php endforeach; ?>

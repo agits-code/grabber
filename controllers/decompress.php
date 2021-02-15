@@ -1,19 +1,17 @@
 <?php
 require "GrabberTool.php";
-
-foreach ($app['database']->selectAll('myfiles') as $item) {
-    //download->decompress->read
-    if ($item->downloaded) {
+if (!$list = $app['database']->downloadedFiles()) exit("nessun file da scompattare");
+foreach ($list as $item) {
 
 
         if (!$item->decompressed) {
-            GrabberTool::decompressGz("getFeed?filename=" . $item->filename);
+            GrabberTool::decompressGz($item);
             $app['database']->setDecompressed($item->filename);
-            $step = "file ".$item->filename." scompattato";
+            $step = "file " . $item->filename . " scompattato";
             break;
 
         }
-    }
+
 
 }
 

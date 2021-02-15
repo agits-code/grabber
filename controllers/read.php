@@ -1,8 +1,9 @@
 <?php
 require "GrabberTool.php";
-foreach ($app['database']->selectAll('myfiles') as $item) {
+if (!$list = $app['database']->decompressedFiles()) exit("nessun file da leggere");
+foreach ($app['database']->decompressedFiles() as $item) {
 
-    if ($item->decompressed) {
+
 
 
         if (!$item->isread) {
@@ -12,7 +13,7 @@ foreach ($app['database']->selectAll('myfiles') as $item) {
             break;
         }
 
-    }
+
 
 }
 
