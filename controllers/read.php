@@ -7,7 +7,7 @@ foreach ($app['database']->decompressedFiles() as $item) {
 
 
         if (!$item->isread) {
-            GrabberTool::csvReader($item->filename,$app['database']);
+            GrabberTool::csvReader($item,$app['database']);
 
             $step = "file ".$item->filename." letto";
             break;

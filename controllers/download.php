@@ -5,12 +5,20 @@ foreach ($app['database']->selectAll('myfiles') as $item) {
     if ($item->todo) {
 
         if (!$item->downloaded) {
-            GrabberTool::downloadFileok($item,$app['database']);
+    /*       GrabberTool::downloadFile1($item); // ok unica soluzione
+            $app['database']->setDownloaded($item->filename, $item->ID);
+    */
+               GrabberTool::downloadFileok($item, $app['database']); //ok passo passo
 
-           // GrabberTool::downloadFile1($item->link); // funziona
-            $app['database']->setDownloaded($item->filename);
-            $step = "file ".$item->filename." scaricato";
-            break;
+
+            if($item->filesize === $app['database']->getCursor($item->filename,$item->ID)) {
+                $app['database']->setDownloaded($item->filename, $item->ID);
+                $step = "file " . $item->filename . " scaricato";
+            }
+           $step = "file " . $item->filename .
+               " in download : ".(($app['database']->getCursor($item->filename,$item->ID))/1000000)." MB 
+               di ".round(($item->filesize)/1000000)." scaricati";
+            break; // passa al prossimo file
         }
     }
 }

@@ -14,8 +14,8 @@
         </li>
     </ul>
 </nav>
-<h1>file scaricato</h1>
-  <h3><?= $step; ?>></h3>
+<h1>file progress</h1>
+  <h3><?= $step; ?></h3>
 
 </body>
 </html>

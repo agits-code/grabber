@@ -91,71 +91,11 @@ class GrabberTool
 
     }
 
-
-    public static function downloadFileok($row,$db) // perfetto
+    public static function downloadFile($row) // download in unica soluzione-ok
     {
-        set_time_limit(0);
-
-        $fileName = self::$path.basename($row->link);
-        if (($row->filesize) - ($row->filecursor) === 0) {
-            $db->setDownloaded($row->filename);
-            echo "file scaricato";
-        }
-
-
+        $fileName = self::$path.$row->ID.basename($row->link);
         if (($curl = curl_init($row->link)) === false) {
-            throw new Exception("curl_init error for url $row->link.");
-        }
-        curl_setopt_array($curl, self::$options);
-        curl_setopt($curl, CURLOPT_USERPWD, self::$username.":".self::$password);
-        curl_setopt($curl,CURLOPT_TIMEOUT, 50);//non cambia nulla
-        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);//non cambia nulla
-
-        if (($fp = fopen($fileName, "a+")) === false) {
-            throw new Exception("fopen error for filename $fileName");
-        }
-        curl_setopt($curl, CURLOPT_FILE, $fp);
-        #################################################################
-        //TODO così scarica 500 byte --> come scaricare altri?
-        $startTime = time();
-       // $steps_reads = 0; // questo funziona
-        while (($init = $db->getCursor($row->filename)) < ($row->filesize)) {
-
-                                 // echo "init: ".$init."--filesize: ".$row->filesize."\n";
-            $end = ((($row->filesize)-$init) >500) ? ($init + 500) : ($row->filesize);
-            curl_setopt($curl, CURLOPT_RANGE, '$init-$end');
-                                // echo "end: ".$end."<br>";
-            $db->setCursor($row->filename,$end);
-          //  $steps_reads = $steps_reads + 1;
-           if (time()-$startTime>5) exit("scaricati $end byte di $row->filesize");
-          //  if ($steps_reads>10000) exit; // questo funziona
-        }
-        ################################################################# */
-
-        if (curl_exec($curl) === false) {
-            fclose($fp);
-            unlink($fileName);
-            throw new Exception("curl_exec error for url $row->link.");
-
-
-        } else {
-
-            fclose($fp);
-        }
-
-        curl_close($curl);
-    }
-
-
-
-    public static function downloadFile1($file_gz_url) // ok download in unica soluzione
-    {
-
-        $fileName = self::$path.basename($file_gz_url);
-
-
-        if (($curl = curl_init($file_gz_url)) === false) {
-            throw new Exception("curl_init error for url $file_gz_url.");
+            throw new Exception("curl_init error for url $row->filename.");
         }
         curl_setopt_array($curl, self::$options);
         curl_setopt($curl, CURLOPT_USERPWD, self::$username.":".self::$password);
@@ -170,7 +110,96 @@ class GrabberTool
         if (curl_exec($curl) === false) {
             fclose($fp);
             unlink($fileName);
-            throw new Exception("curl_exec error for url $file_gz_url.");
+            throw new Exception("curl_exec error for url $row->filename.");
+        } elseif (isset($targetDir)) {
+            $eurl = curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
+            preg_match('#^.*/(.+)$#', $eurl, $match);
+            fclose($fp);
+            rename($fileName, "$targetDir{$match[1]}");
+
+        } else {
+
+            fclose($fp);
+        }
+
+        curl_close($curl);
+
+
+    }
+
+
+
+
+    public static function downloadFileok($row,$db)
+    {
+        set_time_limit(0);
+        $init = ( $db->getCursor($row->filename,$row->ID)===0 ) ? (0) : ($db->getCursor($row->filename,$row->ID) + 1);
+
+        $end = (($row->filesize - ($db->getCursor($row->filename,$row->ID))) > 499999) ? ($init + 499999) : ($row->filesize);
+
+        $fileName = self::$path.$row->ID.basename($row->link);
+
+        if (($fp = fopen($fileName, "a+b")) === false) {
+            throw new Exception("fopen error for filename $fileName");
+        }
+
+        if (($curl = curl_init($row->link)) === false) {
+            throw new Exception("curl_init error for url $row->link.");
+        }
+        curl_setopt_array($curl, self::$options);
+        curl_setopt($curl, CURLOPT_USERPWD, self::$username.":".self::$password);
+        curl_setopt($curl,CURLOPT_TIMEOUT, 50);//non cambia nulla
+        curl_setopt($curl, CURLOPT_FILE, $fp);
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);//non cambia nulla
+        curl_setopt($curl,CURLOPT_RANGE,$init."-".$end);
+        //curl_setopt($curl,CURLOPT_RANGE,0-100000000000 );
+        curl_setopt($curl, CURLOPT_URL, $row->link);
+        curl_setopt($curl, CURLOPT_FAILONERROR, true);
+        curl_setopt($curl, CURLOPT_HEADER, 0);
+        curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
+        curl_setopt($curl, CURLOPT_AUTOREFERER, true);
+        curl_setopt($curl, CURLOPT_BINARYTRANSFER,true);
+
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+
+        if (curl_exec($curl) === false) {
+            fclose($fp);
+            unlink($fileName);
+            throw new Exception("curl_exec error for url $row->filename.");
+        }  else {
+
+            fclose($fp);
+        }
+
+        $db->setCursor($row->filename, $end, $row->ID);
+
+       curl_close($curl);
+    }
+
+
+
+    public static function downloadFile1($row) // ok download in unica soluzione
+    {
+
+        $fileName = self::$path.$row->ID.basename($row->link);
+        if (($curl = curl_init($row->link)) === false) {
+            throw new Exception("curl_init error for url $row->link.");
+        }
+        curl_setopt_array($curl, self::$options);
+        curl_setopt($curl, CURLOPT_USERPWD, self::$username.":".self::$password);
+
+
+        if (($fp = fopen($fileName, "ab")) === false) {
+            throw new Exception("fopen error for filename $fileName");
+        }
+        curl_setopt($curl, CURLOPT_FILE, $fp);
+
+
+        if (curl_exec($curl) === false) {
+            fclose($fp);
+            unlink($fileName);
+            throw new Exception("curl_exec error for url $row->link.");
         } elseif (isset($targetDir)) {
             $eurl = curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
             preg_match('#^.*/(.+)$#', $eurl, $match);
@@ -192,7 +221,7 @@ class GrabberTool
     public static function decompressGz ($row) // ok perfetto
     {
 
-        $file_name = self::$path.basename($row->link);
+        $file_name = self::$path.$row->ID.basename($row->link);
         if (( $file = gzopen($file_name, 'rb')) === false) {
             throw new Exception("fopen error for filename $file_name");
         }
@@ -219,9 +248,10 @@ class GrabberTool
     }
 
 
-    public static function csvReader($file_csv,$db) // ok perfetto
+    public static function csvReader($row,$db) // ok perfetto
     {
-        $filename = "getFeed?filename=".str_replace('.gz', '', $file_csv);;
+        $file_csv = $row->filename;
+        $filename = $row->ID."getFeed?filename=".str_replace('.gz', '', $file_csv);;
 
         $file = self::$path . $filename;
 

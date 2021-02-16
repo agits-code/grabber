@@ -6,7 +6,7 @@ foreach ($list as $item) {
 
         if (!$item->decompressed) {
             GrabberTool::decompressGz($item);
-            $app['database']->setDecompressed($item->filename);
+            $app['database']->setDecompressed($item->filename,$item->ID);
             $step = "file " . $item->filename . " scompattato";
             break;
 

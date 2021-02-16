@@ -46,10 +46,10 @@ class QueryBuilder
         return $statement->fetchAll(PDO::FETCH_CLASS);
     }
 
-    public function getCursor($filename)
+    public function getCursor($filename,$id)
     {
 
-        $statement = $this->pdo->prepare("select * from myfiles where filename = '$filename'");
+        $statement = $this->pdo->prepare("select * from myfiles where filename = '$filename' AND ID='$id'");
 
         $statement->execute();
 
@@ -81,10 +81,10 @@ class QueryBuilder
         $statment->execute();
     }
 
-    public function setCursor($filename,$cursor)
+    public function setCursor($filename,$cursor,$id)
     {
         try {
-            $statment = $this->pdo->prepare("UPDATE myfiles SET filecursor='$cursor' WHERE filename='$filename'");
+            $statment = $this->pdo->prepare("UPDATE myfiles SET filecursor='$cursor' WHERE filename='$filename' AND ID='$id'");
 
         } catch (Exception $e)
         {
@@ -134,10 +134,10 @@ class QueryBuilder
         $statment->execute();
     }
 
-    public function setDownloaded($filename)
+    public function setDownloaded($filename,$id)
     {
         try {
-            $statment = $this->pdo->prepare("UPDATE myfiles SET downloaded=true WHERE filename='$filename'");
+            $statment = $this->pdo->prepare("UPDATE myfiles SET downloaded=true WHERE filename='$filename' AND ID='$id'");
 
         } catch (Exception $e)
         {
