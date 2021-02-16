@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>letti</title>
+    <title>read</title>
 </head>
 <body>
 <nav>
@@ -13,8 +13,10 @@
         </li>
     </ul>
 </nav>
-<h1>file letti</h1>
-<h3>funziona?</h3>
+
+
+<h1>reading progress</h1>
+<h3><?= $step; ?></h3>
 
 </body>
 </html>

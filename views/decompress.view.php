@@ -13,7 +13,7 @@
         </li>
     </ul>
 </nav>
-<h1>file decompresso</h1>
+<h2>Decompress :</h2>
 <h3><?= $step; ?></h3>
 
 </body>

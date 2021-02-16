@@ -5,20 +5,13 @@ foreach ($app['database']->selectAll('myfiles') as $item) {
     if ($item->todo) {
 
         if (!$item->downloaded) {
-    /*       GrabberTool::downloadFile1($item); // ok unica soluzione
-            $app['database']->setDownloaded($item->filename, $item->ID);
-    */
-               GrabberTool::downloadFileok($item, $app['database']); //ok passo passo
+            GrabberTool::downloadFile($item); // ok unica soluzione
 
+            $app['database']->getPdo()->query("UPDATE myfiles SET downloaded=true WHERE filename='$item->filename' AND ID='$item->ID';");
+            $step = "file " . $item->filename . " scaricato";
 
-            if($item->filesize === $app['database']->getCursor($item->filename,$item->ID)) {
-                $app['database']->setDownloaded($item->filename, $item->ID);
-                $step = "file " . $item->filename . " scaricato";
-            }
-           $step = "file " . $item->filename .
-               " in download : ".(($app['database']->getCursor($item->filename,$item->ID))/1000000)." MB 
-               di ".round(($item->filesize)/1000000)." scaricati";
-            break; // passa al prossimo file
+            break;
+
         }
     }
 }
