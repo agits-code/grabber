@@ -155,6 +155,7 @@ class GrabberTool
     }
 
 
+
     public static function csvReader($row,$db) // ok perfetto
     {
         $file_csv = $row->filename;
@@ -175,29 +176,19 @@ class GrabberTool
         $h = fopen($file, "r");
 
         fseek($h,($db->getPointer($row->ID)));
-        //$in = intval($db->getPointer($row->ID));
 
         $startTime = time();
         while (($data =fgetcsv($h, 4000)) !== FALSE)
         {
-            $csv_row[ftell($h)] = $data;
+            $the_big_array[ftell($h)] = $data;
             $pos = ftell($h);
-       /*
-               per vedere le posizioni del puntatore al file csv
-               $segmento = [
-                'puntatore_inizio' => $in,
-                'puntatore_lettura' => $pos,
-                'contenuto' => $the_big_array[ftell($h)]
-               ];
-               var_dump($segmento);
-       */
-
             $db->setPointer($row->ID,intval($pos));
-
             #############################################################
             //TODO qua codice per processare dati riga csv
-            var_dump($csv_row[ftell($h)]);
+            var_dump($the_big_array[ftell($h)]);
             #############################################################
+
+
             if ((time()-$startTime>10) or (filesize($file) === intval($pos))) break;
         }
 
