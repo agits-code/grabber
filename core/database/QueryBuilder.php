@@ -10,6 +10,14 @@ class QueryBuilder
         $this->pdo = $pdo;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getPdo()
+    {
+        return $this->pdo;
+    }
+
     public function selectAll($table)
     {
         $statement = $this->pdo->prepare("select * from {$table}");
@@ -19,10 +27,10 @@ class QueryBuilder
         return $statement->fetchAll(PDO::FETCH_CLASS);
     }
 
-    public function selectProcessing()
+    public function selectProcessing() //da cancellare
     {
-
-        $statement = $this->pdo->prepare("select * from myfiles where ((downloaded=false AND filecursor >0) OR (isread=false AND pointer > 0))");
+        //$statement = $this->pdo->prepare("select * from myfiles where ((downloaded=false AND filecursor >0) OR (isread=false AND pointer > 0))");
+        $statement = $this->pdo->prepare("select * from myfiles where ( isread=false AND pointer > 0)");
 
         $statement->execute();
 
@@ -46,10 +54,10 @@ class QueryBuilder
         return $statement->fetchAll(PDO::FETCH_CLASS);
     }
 
-    public function getCursor($filename,$id)
+    public function getCursor($id)
     {
 
-        $statement = $this->pdo->prepare("select * from myfiles where filename = '$filename' AND ID='$id'");
+        $statement = $this->pdo->prepare("select * from myfiles where ID='$id';");
 
         $statement->execute();
 
@@ -81,10 +89,10 @@ class QueryBuilder
         $statment->execute();
     }
 
-    public function setCursor($filename,$cursor,$id)
+    public function setCursor($cursor,$id)
     {
         try {
-            $statment = $this->pdo->prepare("UPDATE myfiles SET filecursor='$cursor' WHERE filename='$filename' AND ID='$id'");
+            $statment = $this->pdo->prepare("UPDATE myfiles SET filecursor='$cursor' WHERE  ID='$id';");
 
         } catch (Exception $e)
         {
@@ -120,31 +128,9 @@ class QueryBuilder
 
     }
 
-    public function skipFiles()
-    {
-        //  WHERE (filename regexp '^([a-z_.-]+)\.([a-z.]{2,6})$' or filename LIKE '%.xml.%')");
-        try {
-            $statment = $this->pdo->prepare("UPDATE myfiles SET todo=false 
-             WHERE (filename LIKE '%.xml.%')");
 
-        } catch (Exception $e)
-        {
-            //var_dump($e);
-        }
-        $statment->execute();
-    }
 
-    public function setDownloaded($filename,$id)
-    {
-        try {
-            $statment = $this->pdo->prepare("UPDATE myfiles SET downloaded=true WHERE filename='$filename' AND ID='$id'");
 
-        } catch (Exception $e)
-        {
-            //var_dump($e);
-        }
-        $statment->execute();
-    }
 
     public function setDecompressed($filename)
     {
@@ -169,15 +155,5 @@ class QueryBuilder
         }
         $statment->execute();
     }
-    public function clearOld()
-    {
-        try {
-            $statment = $this->pdo->prepare("DELETE FROM myfiles WHERE isread=true AND filedate < (NOW() - 3600*24*30);");
 
-        } catch (Exception $e)
-        {
-            //var_dump($e);
-        }
-        $statment->execute();
-    }
 }
