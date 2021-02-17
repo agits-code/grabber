@@ -16,8 +16,7 @@ foreach ($app['database']->selectAll('myfiles') as $item) {
                 $step = "file " . $item->filename . " scaricato";
             }
            $step = "file " . $item->filename .
-               " in download : ".(($app['database']->getCursor($item->filename,$item->ID))/1000000)." MB 
-               di ".round(($item->filesize)/1000000)." scaricati";
+               " in download : di ".($item->filesize)." byte";
             break; // passa al prossimo file
         }
     }
