@@ -10,14 +10,6 @@ class QueryBuilder
         $this->pdo = $pdo;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getPdo()
-    {
-        return $this->pdo;
-    }
-
     public function selectAll($table)
     {
         $statement = $this->pdo->prepare("select * from {$table}");
@@ -27,24 +19,60 @@ class QueryBuilder
         return $statement->fetchAll(PDO::FETCH_CLASS);
     }
 
-
-
-    public function getPointer($file_id)
+    public function selectProcessing()
     {
 
-        $statement = $this->pdo->prepare("select * from myfiles where ID = '$file_id'");
+        $statement = $this->pdo->prepare("select * from myfiles where ((downloaded=false AND filecursor >0) OR (isread=false AND pointer > 0))");
 
         $statement->execute();
 
         $item = $statement->fetchAll(PDO::FETCH_CLASS);
+        return $item;
+    }
 
+    public function downloadedFiles()
+    {
+        $statement = $this->pdo->prepare("select * from myfiles where downloaded=true");
+        $statement->execute();
+
+        return $statement->fetchAll(PDO::FETCH_CLASS);
+    }
+
+    public function decompressedFiles()
+    {
+        $statement = $this->pdo->prepare("select * from myfiles where decompressed=true");
+        $statement->execute();
+
+        return $statement->fetchAll(PDO::FETCH_CLASS);
+    }
+
+    public function getCursor($filename,$id)
+    {
+
+        $statement = $this->pdo->prepare("select * from myfiles where filename = '$filename' AND ID='$id'");
+
+        $statement->execute();
+
+        $item = $statement->fetchAll(PDO::FETCH_CLASS);
+        return $item[0]->filecursor;
+    }
+
+
+    public function getPointer($table,$filename)
+    {
+
+        $statement = $this->pdo->prepare("select * from {$table} where filename = '$filename'");
+
+        $statement->execute();
+
+        $item = $statement->fetchAll(PDO::FETCH_CLASS);
         return $item[0]->pointer;
     }
 
-    public function setPointer($file_id,$cursor)
+    public function setPointer($filename,$cursor)
     {
         try {
-            $statment = $this->pdo->prepare("UPDATE myfiles SET pointer='$cursor' WHERE ID='$file_id'");
+            $statment = $this->pdo->prepare("UPDATE myfiles SET pointer='$cursor' WHERE filename='$filename'");
 
         } catch (Exception $e)
         {
@@ -53,7 +81,17 @@ class QueryBuilder
         $statment->execute();
     }
 
+    public function setCursor($filename,$cursor,$id)
+    {
+        try {
+            $statment = $this->pdo->prepare("UPDATE myfiles SET filecursor='$cursor' WHERE filename='$filename' AND ID='$id'");
 
+        } catch (Exception $e)
+        {
+            //var_dump($e);
+        }
+        $statment->execute();
+    }
 
     public function selectFile($table,$filename,$filedate)
     {
@@ -65,7 +103,7 @@ class QueryBuilder
 
 
 
-    public function putRow($filename,$filedate,$filesize,$md5,$link)
+    public function insert($filename,$filedate,$filesize,$md5,$link)
     {
        if(count($this->selectFile('myfiles',$filename,$filedate)) === 0) {
            try {
@@ -82,11 +120,12 @@ class QueryBuilder
 
     }
 
-
-    public function setRead($id)
+    public function skipFiles()
     {
+        //  WHERE (filename regexp '^([a-z_.-]+)\.([a-z.]{2,6})$' or filename LIKE '%.xml.%')");
         try {
-            $statment = $this->pdo->prepare("UPDATE myfiles SET isread=true WHERE ID='$id';");
+            $statment = $this->pdo->prepare("UPDATE myfiles SET todo=false 
+             WHERE (filename LIKE '%.xml.%')");
 
         } catch (Exception $e)
         {
@@ -95,4 +134,50 @@ class QueryBuilder
         $statment->execute();
     }
 
+    public function setDownloaded($filename,$id)
+    {
+        try {
+            $statment = $this->pdo->prepare("UPDATE myfiles SET downloaded=true WHERE filename='$filename' AND ID='$id'");
+
+        } catch (Exception $e)
+        {
+            //var_dump($e);
+        }
+        $statment->execute();
+    }
+
+    public function setDecompressed($filename)
+    {
+        try {
+            $statment = $this->pdo->prepare("UPDATE myfiles SET decompressed=true WHERE filename='$filename'");
+
+        } catch (Exception $e)
+        {
+            //var_dump($e);
+        }
+        $statment->execute();
+    }
+
+    public function setRead($filename)
+    {
+        try {
+            $statment = $this->pdo->prepare("UPDATE myfiles SET isread=true WHERE filename='$filename'");
+
+        } catch (Exception $e)
+        {
+            //var_dump($e);
+        }
+        $statment->execute();
+    }
+    public function clearOld()
+    {
+        try {
+            $statment = $this->pdo->prepare("DELETE FROM myfiles WHERE isread=true AND filedate < (NOW() - 3600*24*30);");
+
+        } catch (Exception $e)
+        {
+            //var_dump($e);
+        }
+        $statment->execute();
+    }
 }
