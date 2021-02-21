@@ -4,14 +4,17 @@ error_reporting(E_STRICT | E_ALL);
 class GrabberTool
 {
     private static $path = "../../downloads/";
-    private static $row;
+    private static $file_API_amazon;   //singolo file
     private static $username = 'hdblit-21';
     private static $password = 'J-!35XN^f$bCH%k#';
     public static $options = array(
+
         CURLOPT_AUTOREFERER => true,
         CURLOPT_COOKIEFILE => '',
-        CURLOPT_HTTPAUTH =>CURLAUTH_DIGEST,
-        CURLOPT_FOLLOWLOCATION => true
+        CURLOPT_HTTPAUTH => CURLAUTH_DIGEST,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_RETURNTRANSFER => true ,
+        CURLOPT_VERBOSE => 1
     );
 
     public static function fetchContent($url)
@@ -24,11 +27,7 @@ class GrabberTool
 
             'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36',
             'Sec-Fetch-Dest: document'));
-        curl_setopt_array($curl, array(
-            CURLOPT_HTTPAUTH => CURLAUTH_DIGEST,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_VERBOSE => 1
-        ));
+        curl_setopt_array($curl,self::$options);
         curl_setopt($curl, CURLOPT_USERPWD, self::$username . ":" . self::$password);
 
         $content = curl_exec($curl);
@@ -61,145 +60,71 @@ class GrabberTool
 
             if(is_object($els->item(0))) {
 
-                self::$row['name'] = $els->item(0)->nodeValue;
+                self::$file_API_amazon['name'] = $els->item(0)->nodeValue;
             }
             if(is_object($els->item(1))) {
 
-                self::$row['date'] = date("Y-m-d H:i:s",strtotime($els->item(1)->nodeValue));
+                self::$file_API_amazon['date'] = date("Y-m-d H:i:s",strtotime($els->item(1)->nodeValue));
 
             }
             if(is_object($els->item(2))) {
-                self::$row['code'] = str_replace("\"", "",$els->item(2)->nodeValue);
+                self::$file_API_amazon['code'] = str_replace("\"", "",$els->item(2)->nodeValue);
 
             }
             if(is_object($els->item(3))) {
-                self::$row['size'] = $els->item(3)->nodeValue;
+                self::$file_API_amazon['size'] = $els->item(3)->nodeValue;
 
             }
             if(is_object($els->item(4))) {
-                self::$row['link'] = "https://assoc-datafeeds-eu.amazon.com/datafeed/".($els->item(4)->firstChild->getAttribute('href'));
+                self::$file_API_amazon['link'] = "https://assoc-datafeeds-eu.amazon.com/datafeed/".($els->item(4)->firstChild->getAttribute('href'));
 
             }
 
-           if(self::$row) {
+           if(self::$file_API_amazon) {
 
 
-               $riga[] = self::$row;
+               $riga[] = self::$file_API_amazon;
            }
         }
         return $riga;
 
     }
 
-    public static function downloadFile($row) // download in unica soluzione-ok
+
+
+
+    public static function downloadFile1($row,$db) // FUNZIONA!!!!!!!!!
     {
+        if ($db->getCursor($row->ID)){
+            $init =$db->getCursor($row->ID) + 1;
+        } else $init = 0;
+        $end = (($row->filesize - ($db->getCursor($row->ID))) > 499999) ? ($init + 499999) : ($row->filesize);
+        $range = "$init-$end";
         $fileName = self::$path.$row->ID.basename($row->link);
         if (($curl = curl_init($row->link)) === false) {
             throw new Exception("curl_init error for url $row->filename.");
         }
         curl_setopt_array($curl, self::$options);
         curl_setopt($curl, CURLOPT_USERPWD, self::$username.":".self::$password);
-
-
-        if (($fp = fopen($fileName, "wb")) === false) {
-            throw new Exception("fopen error for filename $fileName");
-        }
-        curl_setopt($curl, CURLOPT_FILE, $fp);
-
-
-        if (curl_exec($curl) === false) {
-            fclose($fp);
-            unlink($fileName);
-            throw new Exception("curl_exec error for url $row->filename.");
-        } elseif (isset($targetDir)) {
-            $eurl = curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
-            preg_match('#^.*/(.+)$#', $eurl, $match);
-            fclose($fp);
-            rename($fileName, "$targetDir{$match[1]}");
-
-        } else {
-
-            fclose($fp);
-        }
-
-        curl_close($curl);
-
-
-    }
-
-
-
-
-    public static function downloadFileok($row,$db)
-    {
-        set_time_limit(0);
-        $init = ( $db->getCursor($row->filename,$row->ID)===0 ) ? (0) : ($db->getCursor($row->filename,$row->ID) + 1);
-
-        $end = (($row->filesize - ($db->getCursor($row->filename,$row->ID))) > 499999) ? ($init + 499999) : ($row->filesize);
-
-        $fileName = self::$path.$row->ID.basename($row->link);
-
-        if (($fp = fopen($fileName, "a+b")) === false) {
-            throw new Exception("fopen error for filename $fileName");
-        }
-
-        if (($curl = curl_init($row->link)) === false) {
-            throw new Exception("curl_init error for url $row->link.");
-        }
-        curl_setopt_array($curl, self::$options);
-        curl_setopt($curl, CURLOPT_USERPWD, self::$username.":".self::$password);
-        curl_setopt($curl,CURLOPT_TIMEOUT, 50);//non cambia nulla
-        curl_setopt($curl, CURLOPT_FILE, $fp);
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);//non cambia nulla
-        curl_setopt($curl,CURLOPT_RANGE,$init."-".$end);
-        //curl_setopt($curl,CURLOPT_RANGE,0-100000000000 );
-        curl_setopt($curl, CURLOPT_URL, $row->link);
-        curl_setopt($curl, CURLOPT_FAILONERROR, true);
-        curl_setopt($curl, CURLOPT_HEADER, 0);
-        curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
-        curl_setopt($curl, CURLOPT_AUTOREFERER, true);
-        curl_setopt($curl, CURLOPT_BINARYTRANSFER,true);
-
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-
-        if (curl_exec($curl) === false) {
-            fclose($fp);
-            unlink($fileName);
-            throw new Exception("curl_exec error for url $row->filename.");
-        }  else {
-
-            fclose($fp);
-        }
-
-        $db->setCursor($row->filename, $end, $row->ID);
-
-       curl_close($curl);
-    }
-
-
-
-    public static function downloadFile1($row) // ok download in unica soluzione
-    {
-
-        $fileName = self::$path.$row->ID.basename($row->link);
-        if (($curl = curl_init($row->link)) === false) {
-            throw new Exception("curl_init error for url $row->link.");
-        }
-        curl_setopt_array($curl, self::$options);
-        curl_setopt($curl, CURLOPT_USERPWD, self::$username.":".self::$password);
-
+        curl_setopt($curl,CURLOPT_RANGE,$range);
 
         if (($fp = fopen($fileName, "ab")) === false) {
             throw new Exception("fopen error for filename $fileName");
         }
         curl_setopt($curl, CURLOPT_FILE, $fp);
 
+        echo "$init : $end\n";
+        $db->setCursor($end, $row->ID);
 
+        if ($row->filesize === $end) {
+            $db->getPdo()->query("UPDATE myfiles SET downloaded=true WHERE ID='$row->ID';");
+
+            }
         if (curl_exec($curl) === false) {
             fclose($fp);
             unlink($fileName);
-            throw new Exception("curl_exec error for url $row->link.");
+            throw new Exception("curl_exec error for url $row->filename.");
         } elseif (isset($targetDir)) {
             $eurl = curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
             preg_match('#^.*/(.+)$#', $eurl, $match);
@@ -208,12 +133,15 @@ class GrabberTool
 
         } else {
 
-            fclose($fp);
-        }
+                fclose($fp);
+            }
 
-        curl_close($curl);
+
+            curl_close($curl);
 
     }
+
+
 
 
 
