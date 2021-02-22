@@ -191,6 +191,7 @@ class GrabberTool
         }
         $count = $db->query("SELECT pointer from myfiles where ID='$row->ID';")->fetchAll(PDO::FETCH_COLUMN)[0];
         $cursor = intval($count);
+        echo $cursor." : filesize ".filesize($file);
         if (filesize($file) === $cursor){
             echo "File: ".$file_csv." is read";
 
