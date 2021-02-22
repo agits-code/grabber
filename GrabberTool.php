@@ -189,23 +189,24 @@ class GrabberTool
         if ( ! is_readable( $file ) ) {
             die( 'Il file non è leggibile oppure non esiste!' );
         }
-
-        if (filesize($file) === intval($db->getPointer('myfiles',$file_csv))){
+        $count = $db->query("SELECT pointer from myfiles where ID='$row->ID';")->fetchAll(PDO::FETCH_COLUMN)[0];
+        $cursor = intval($count);
+        if (filesize($file) === $cursor){
             echo "File: ".$file_csv." is read";
 
-            $db->setRead($file_csv);
+           // $db->query("UPDATE myfiles SET isread=true WHERE ID='$row->ID';");
         }
 
         $h = fopen($file, "r");
 
-        fseek($h,($db->getPointer('myfiles',$file_csv)));
+        fseek($h,$cursor);
 
         $startTime = time();
         while (($data =fgetcsv($h, 4000)) !== FALSE)
         {
             $the_big_array[ftell($h)] = $data;
             $pos = ftell($h);
-            $db->setPointer($file_csv,intval($pos));
+            $db->query("UPDATE myfiles SET pointer='$pos' WHERE ID='$row->ID';");
             var_dump($the_big_array[ftell($h)]);
 
             if ((time()-$startTime>10) or (filesize($file) === intval($pos))) break;

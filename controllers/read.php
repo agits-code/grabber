@@ -10,8 +10,8 @@ if (!( $app['database']->getPdo()->query("select * from myfiles where decompress
 
 
        if (!$item->isread) {
-          GrabberTool::csvReader($item, $app['database']);
-
+          GrabberTool::csvReader($item, $app['database']->getPdo());
+           $app['database']->getPdo()->query("UPDATE myfiles SET isread=true WHERE ID='$item->ID';");
          $step = "file " . $item->filename . " letto";
         break;
        }
