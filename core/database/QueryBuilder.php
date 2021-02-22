@@ -10,6 +10,14 @@ class QueryBuilder
         $this->pdo = $pdo;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getPdo()
+    {
+        return $this->pdo;
+    }
+
     public function selectAll($table)
     {
         $statement = $this->pdo->prepare("select * from {$table}");
