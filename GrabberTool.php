@@ -93,12 +93,15 @@ class GrabberTool
 
 
 
-    public static function downloadFile1($row,$db) // FUNZIONA!!!!!!!!!
+    public static function downloadFile($row,$db) // FUNZIONA!!!!!!!!!
     {
-        if ($db->getCursor($row->ID)){
-            $init =$db->getCursor($row->ID) + 1;
+       $count = $db->query("SELECT filecursor from myfiles where ID='$row->ID';")->fetchAll(PDO::FETCH_COLUMN)[0];
+       $cursor = intval($count);
+
+        if ($cursor){
+            $init =$cursor + 1;
         } else $init = 0;
-        $end = (($row->filesize - ($db->getCursor($row->ID))) > 499999) ? ($init + 499999) : ($row->filesize);
+        $end = (($row->filesize - $cursor) > 499999) ? ($init + 499999) : ($row->filesize);
         $range = "$init-$end";
         $fileName = self::$path.$row->ID.basename($row->link);
         if (($curl = curl_init($row->link)) === false) {
@@ -115,10 +118,10 @@ class GrabberTool
         curl_setopt($curl, CURLOPT_FILE, $fp);
 
         echo "$init : $end\n";
-        $db->setCursor($end, $row->ID);
+        $db->query("UPDATE myfiles SET filecursor='$end' WHERE ID='$row->ID';");
 
         if ($row->filesize === $end) {
-            $db->getPdo()->query("UPDATE myfiles SET downloaded=true WHERE ID='$row->ID';");
+            $db->query("UPDATE myfiles SET downloaded=true WHERE ID='$row->ID';");
 
             }
         if (curl_exec($curl) === false) {
@@ -179,7 +182,7 @@ class GrabberTool
     public static function csvReader($row,$db) // ok perfetto
     {
         $file_csv = $row->filename;
-        $filename = $row->ID."getFeed?filename=".str_replace('.gz', '', $file_csv);;
+        $filename = $row->ID."getFeed?filename=".str_replace('.gz', '', $file_csv);
 
         $file = self::$path . $filename;
 
