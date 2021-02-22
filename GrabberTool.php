@@ -64,8 +64,8 @@ class GrabberTool
             }
             if(is_object($els->item(1))) {
 
-                self::$file_API_amazon['date'] = date("Y-m-d H:i:s",strtotime($els->item(1)->nodeValue));
-
+              //  self::$file_API_amazon['date'] = date("Y-m-d H:i:s",strtotime($els->item(1)->nodeValue));
+                self::$file_API_amazon['date'] =strtotime($els->item(1)->nodeValue);
             }
             if(is_object($els->item(2))) {
                 self::$file_API_amazon['code'] = str_replace("\"", "",$els->item(2)->nodeValue);
@@ -119,6 +119,8 @@ class GrabberTool
 
         echo "$init : $end\n";
         $db->query("UPDATE myfiles SET filecursor='$end' WHERE ID='$row->ID';");
+        $now = time();
+        $db->query("UPDATE myfiles SET updated= '$now' WHERE ID='$row->ID';");
 
         if ($row->filesize === $end) {
             $db->query("UPDATE myfiles SET downloaded=true WHERE ID='$row->ID';");
@@ -194,7 +196,7 @@ class GrabberTool
         if (filesize($file) === $cursor){
             echo "File: ".$file_csv." is read";
 
-           // $db->query("UPDATE myfiles SET isread=true WHERE ID='$row->ID';");
+            $db->query("UPDATE myfiles SET isread=true WHERE ID='$row->ID';");
         }
 
         $h = fopen($file, "r");
@@ -205,10 +207,17 @@ class GrabberTool
         while (($data =fgetcsv($h, 4000)) !== FALSE)
         {
             $the_big_array[ftell($h)] = $data;
+            $asin = $the_big_array[ftell($h)][0];
+
+            $title = $the_big_array[ftell($h)][2];
+            echo $asin." - ".$title."\n";
             $pos = ftell($h);
             $db->query("UPDATE myfiles SET pointer='$pos' WHERE ID='$row->ID';");
-            var_dump($the_big_array[ftell($h)]);
-
+            $now = time();
+            $db->query("UPDATE myfiles SET updated= '$now' WHERE ID='$row->ID';");
+           //var_dump($the_big_array[ftell($h)]);
+           // $db->query("INSERT INTO amazoncatalog (asin,title) VALUES ('$asin', '$title');");
+          //  echo "asin: ".$the_big_array[ftell($h)][0]." - ".$the_big_array[ftell($h)][173];
             if ((time()-$startTime>10) or (filesize($file) === intval($pos))) break;
         }
 
