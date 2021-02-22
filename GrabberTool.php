@@ -151,7 +151,7 @@ class GrabberTool
 
 
 
-    public static function decompressGz ($row) // ok perfetto
+    public static function decompressGz ($row) // ok
     {
 
         $file_name = self::$path.$row->ID.basename($row->link);
@@ -181,7 +181,7 @@ class GrabberTool
     }
 
 
-    public static function csvReader($row,$db) // ok perfetto
+    public static function csvReader($row,$db) // ok
     {
         $file_csv = $row->filename;
         $filename = $row->ID."getFeed?filename=".str_replace('.gz', '', $file_csv);
@@ -216,8 +216,10 @@ class GrabberTool
             $now = time();
             $db->query("UPDATE myfiles SET updated= '$now' WHERE ID='$row->ID';");
            //var_dump($the_big_array[ftell($h)]);
-           // $db->query("INSERT INTO amazoncatalog (asin,title) VALUES ('$asin', '$title');");
-          //  echo "asin: ".$the_big_array[ftell($h)][0]." - ".$the_big_array[ftell($h)][173];
+      #####################################################################################
+       ###       scrivere nel db prodotti                                          #######
+      #####################################################################################
+
             if ((time()-$startTime>10) or (filesize($file) === intval($pos))) break;
         }
 
