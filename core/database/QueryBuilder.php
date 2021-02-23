@@ -5,10 +5,37 @@ class QueryBuilder
 {
     protected $pdo;
 
+
+
     public function __construct($pdo)
     {
         $this->pdo = $pdo;
     }
+
+
+
+    public function query($sql)
+    {
+
+        try {
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute();
+            return $statement;
+        } catch (Exception $e) {
+            echo $e->getMessage();
+            die('query non funziona ....');
+        }
+
+    }
+
+    public function query_all($sql)
+    {
+
+        // TODO: Parametro $query.
+        //$sql = "SELECT file_name FROM $nome_archivio ORDER BY timestamp DESC ";
+        return $this->query($sql)->fetchAll(PDO::FETCH_OBJ);
+    }
+
 
     /**
      * @return mixed
