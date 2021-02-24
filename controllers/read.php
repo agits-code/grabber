@@ -10,12 +10,12 @@ if (!( $app['database']->getPdo()->query("select * from myfiles where decompress
 
 
        if (!$item->isread) {
-          GrabberTool::csvReader($item, $app['database']->getPdo());
+          GrabberTool::csvReader($item, $app['database']);
           // $app['database']->getPdo()->query("UPDATE myfiles SET isread=true WHERE ID='$item->ID';");
-         $step = "file " . $item->filename . " letto";
+
         break;
        }
-
+       $step = "file " . $item->filename . " letto";
 }
 
 }
@@ -23,4 +23,4 @@ if (!( $app['database']->getPdo()->query("select * from myfiles where decompress
 
 
 
-require "views/read.view.php";
+//require "views/read.view.php";

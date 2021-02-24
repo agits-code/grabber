@@ -95,8 +95,9 @@ class GrabberTool
 
     public static function downloadFile($row,$db) // FUNZIONA!!!!!!!!!
     {
-       $count = $db->query("SELECT filecursor from myfiles where ID='$row->ID';")->fetchAll(PDO::FETCH_COLUMN)[0];
-       $cursor = intval($count);
+       $count = $db->query_all("SELECT filecursor from myfiles where ID='$row->ID';");
+
+       $cursor = intval($count[0]->filecursor);
 
         if ($cursor){
             $init =$cursor + 1;
@@ -159,12 +160,11 @@ class GrabberTool
             throw new Exception("fopen error for filename $file_name");
         }
 
-// Raising this value may increase performance
+
         $buffer_size = 4096; // read 4kb at a time
         $out_file_name = str_replace('.gz', '', $file_name);
 
-// Open our files (in binary mode)
-       // $file = gzopen($file_name, 'rb');
+// Open files (in binary mode)
         $out_file = fopen($out_file_name, 'wb');
 
 // Keep repeating until the end of the input file
@@ -173,7 +173,7 @@ class GrabberTool
             // Both fwrite and gzread and binary-safe
             fwrite($out_file, gzread($file, $buffer_size));
         }
-       // echo "decompress Done :".$out_file_name;
+
 // Files are done, close files
         fclose($out_file);
         gzclose($file);
@@ -191,8 +191,9 @@ class GrabberTool
         if ( ! is_readable( $file ) ) {
             die( 'Il file non è leggibile oppure non esiste!' );
         }
-        $count = $db->query("SELECT pointer from myfiles where ID='$row->ID';")->fetchAll(PDO::FETCH_COLUMN)[0];
-        $cursor = intval($count);
+        $count = $db->query_all("SELECT pointer from myfiles where ID='$row->ID';");
+        $cursor = intval($count[0]->pointer);
+
         if (filesize($file) === $cursor){
             echo "File: ".$file_csv." is read";
 
@@ -204,23 +205,31 @@ class GrabberTool
         fseek($h,$cursor);
 
         $startTime = time();
-        while (($data =fgetcsv($h, 4000)) !== FALSE)
+        while (($data =fgetcsv($h, 0)) !== FALSE)
         {
-            $the_big_array[ftell($h)] = $data;
-            $asin = $the_big_array[ftell($h)][0];
+          /*  $features=[];
+            for ($c=0; $c < 179; $c++) {
+                $features[$c]= $data[$c] ;
+            }*/
+           $asin = (isset($data[0])) ? $data[0] : '';
+            $price = (isset($data[5])) ? $data[5] : '';
+            $operation = (isset($data[172])) ? $data[172] : '';
 
-            $title = $the_big_array[ftell($h)][2];
-            echo $asin." - ".$title."\n";
+            echo $asin."-".$price."-".$operation."<hr>";
+           // $the_big_array[ftell($h)] = $data;
+            #####################################################################################
+            ###       scrivere nel db prodotti                                          #######
+            #####################################################################################
+
             $pos = ftell($h);
             $db->query("UPDATE myfiles SET pointer='$pos' WHERE ID='$row->ID';");
             $now = time();
             $db->query("UPDATE myfiles SET updated= '$now' WHERE ID='$row->ID';");
-           //var_dump($the_big_array[ftell($h)]);
-      #####################################################################################
-       ###       scrivere nel db prodotti                                          #######
-      #####################################################################################
+          // var_dump($the_big_array[ftell($h)]);
 
-            if ((time()-$startTime>10) or (filesize($file) === intval($pos))) break;
+
+
+            if ((time()-$startTime>1) or (filesize($file) === intval($pos))) break;
         }
 
         fclose($h);
