@@ -1,27 +1,17 @@
 <?php
-require "GrabberTool.php";
 
-if (
-    !($list =  $app['database']->getPdo()->
-    query("select * from myfiles where downloaded=true AND decompressed=false;")->fetchAll(PDO::FETCH_CLASS))
-   )
-   {
-      $step = ( "nessun file da scompattare");
+    $decompr_file = $db->query_first("SELECT * FROM myfiles WHERE downloaded=true AND decompressed=false ORDER BY FILEDATE ASC LIMIT 1;");
 
-    } else {
-    foreach ($list as $item) {
-
-        if (!$item->decompressed) {
-            GrabberTool::decompressGz($item);
-
-            $app['database']->getPdo()->query("UPDATE myfiles SET decompressed=true WHERE filename='$item->filename'  AND ID='$item->ID';");
-           $step = "file " . $item->filename . " scompattato";
-            break;
-
+    if ($decompr_file)
+    {
+        GrabberTool::decompressGz($decompr_file->ID,$decompr_file->link,$db);
+    } else
+        {
+           echo "nessun file da scompattare.";
         }
-     }
 
-   }
+    $step = ($decompr_file) ? ($decompr_file->ID." : ".$decompr_file->filename) : ("&#10005");
+
 
 
 require "views/decompress.view.php";

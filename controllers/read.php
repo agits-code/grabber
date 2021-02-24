@@ -1,25 +1,14 @@
 <?php
-require "GrabberTool.php";
-if (!( $app['database']->getPdo()->query("select * from myfiles where decompressed=true AND isread=false;")->fetchAll(PDO::FETCH_CLASS)))
+$read_file = $db->query_first("SELECT * FROM myfiles WHERE decompressed=true AND isread=false ORDER BY FILEDATE ASC LIMIT 1;");
+if($read_file)
 {
-   $step = "nessun file da leggere";
-} else {
-
-
-   foreach (($app['database']->getPdo()->query("select * from myfiles where decompressed=true;")->fetchAll(PDO::FETCH_CLASS)) as $item) {
-
-
-       if (!$item->isread) {
-          GrabberTool::csvReader($item, $app['database']->getPdo());
-          // $app['database']->getPdo()->query("UPDATE myfiles SET isread=true WHERE ID='$item->ID';");
-         $step = "file " . $item->filename . " letto";
-        break;
-       }
-
+    GrabberTool::csvReader($read_file->ID,$read_file->filename, $db);
+}else
+{
+    echo "nessun file da leggere";
 }
 
-}
-
+$step = ($read_file) ? ($read_file->ID." : ".$read_file->filename) : ("&#10005");
 
 
 
