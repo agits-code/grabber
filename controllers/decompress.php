@@ -1,15 +1,16 @@
 <?php
 
-    $decompr_file = $db->query_all("SELECT * FROM myfiles WHERE downloaded=true AND decompressed=false ORDER BY FILEDATE ASC LIMIT 1;");
+    $decompr_file = $db->query_first("SELECT * FROM myfiles WHERE downloaded=true AND decompressed=false ORDER BY FILEDATE ASC LIMIT 1;");
+
     if ($decompr_file)
     {
-        GrabberTool::decompressGz($decompr_file[0],$db);
+        GrabberTool::decompressGz($decompr_file->ID,$decompr_file->link,$db);
     } else
         {
            echo "nessun file da scompattare.";
         }
 
-    $step = ($decompr_file) ? ($decompr_file[0]->ID." : ".$decompr_file[0]->filename) : ("&#10005");
+    $step = ($decompr_file) ? ($decompr_file->ID." : ".$decompr_file->filename) : ("&#10005");
 
 
 

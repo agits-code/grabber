@@ -90,20 +90,20 @@ class GrabberTool
 
     }
 
-    public static function downloadFile($row,$db) // FUNZIONA!!!!!!!!! id filesize link cursore
+    public static function downloadFile($file_id,$file_size,$file_link,$db) // FUNZIONA!!!!!!!!!
     {
-       $count = $db->query_all("SELECT filecursor from myfiles where ID='$row->ID';");
+       $getCursor = $db->query_first("SELECT filecursor from myfiles where ID='$file_id';");
 
-       $cursor = intval($count[0]->filecursor);
+       $cursor = intval($getCursor->filecursor);
 
         if ($cursor){
             $init =$cursor + 1;
         } else $init = 0;
-        $end = (($row->filesize - $cursor) > 499999) ? ($init + 499999) : ($row->filesize);
+        $end = (($file_size - $cursor) > 499999) ? ($init + 499999) : ($file_size);
         $range = "$init-$end";
-        $fileName = self::$path.$row->ID.basename($row->link);
-        if (($curl = curl_init($row->link)) === false) {
-            throw new Exception("curl_init error for url $row->link.");
+        $fileName = self::$path.$file_id.basename($file_link);
+        if (($curl = curl_init($file_link)) === false) {
+            throw new Exception("curl_init error for url $file_link.");
         }
         curl_setopt_array($curl, self::$options);
         curl_setopt($curl, CURLOPT_USERPWD, self::$username.":".self::$password);
@@ -115,19 +115,19 @@ class GrabberTool
         }
         curl_setopt($curl, CURLOPT_FILE, $fp);
 
-        echo "$init : $end\n";
-        $db->query("UPDATE myfiles SET filecursor='$end' WHERE ID='$row->ID';");
+        echo "$init : $end of $file_size\n";
+        $db->query("UPDATE myfiles SET filecursor='$end' WHERE ID='$file_id';");
         $now = time();
-        $db->query("UPDATE myfiles SET updated= '$now' WHERE ID='$row->ID';");
+        $db->query("UPDATE myfiles SET updated= '$now' WHERE ID='$file_id';");
 
-        if ($row->filesize === $end) {
-            $db->query("UPDATE myfiles SET downloaded=true WHERE ID='$row->ID';");
+        if ($file_size === $end) {
+            $db->query("UPDATE myfiles SET downloaded=true WHERE ID='$file_id';");
 
             }
         if (curl_exec($curl) === false) {
             fclose($fp);
             unlink($fileName);
-            throw new Exception("curl_exec error for url $row->link.");
+            throw new Exception("curl_exec error for url $file_link.");
         } elseif (isset($targetDir)) {
             $eurl = curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
             preg_match('#^.*/(.+)$#', $eurl, $match);
@@ -146,13 +146,10 @@ class GrabberTool
 
 
 
-
-
-
-    public static function decompressGz ($row,$db) // ok
+    public static function decompressGz ($file_id,$file_link,$db) // ok
     {
 
-        $file_name = self::$path.$row->ID.basename($row->link);
+        $file_name = self::$path.$file_id.basename($file_link);
         if (( $file = gzopen($file_name, 'rb')) === false) {
             throw new Exception("fopen error for filename $file_name");
         }
@@ -170,7 +167,7 @@ class GrabberTool
             // Both fwrite and gzread and binary-safe
             fwrite($out_file, gzread($file, $buffer_size));
         }
-        $db->query("UPDATE myfiles SET decompressed=true WHERE ID='$row->ID';");
+        $db->query("UPDATE myfiles SET decompressed=true WHERE ID='$file_id';");
 // Files are done, close files
         fclose($out_file);
         gzclose($file);
@@ -178,23 +175,23 @@ class GrabberTool
     }
 
 
-    public static function csvReader($row,$db) // ok
+    public static function csvReader($file_id,$file_name,$db) // ok
     {
-        $file_csv = $row->filename;
-        $filename = $row->ID."getFeed?filename=".str_replace('.gz', '', $file_csv);
+        $file_csv = $file_name;
+        $filename = $file_id."getFeed?filename=".str_replace('.gz', '', $file_csv);
 
         $file = self::$path . $filename;
 
         if ( ! is_readable( $file ) ) {
             die( 'Il file non è leggibile oppure non esiste!' );
         }
-        $count = $db->query_all("SELECT pointer from myfiles where ID='$row->ID';");
-        $cursor = intval($count[0]->pointer);
+        $getCursor = $db->query_first("SELECT pointer from myfiles where ID='$file_id';");
+        $cursor = intval($getCursor->pointer);
 
         if (filesize($file) === $cursor){
-            echo "File: ".$file_csv." is read";
+            echo "Complete ->\n";
 
-            $db->query("UPDATE myfiles SET isread=true WHERE ID='$row->ID';");
+            $db->query("UPDATE myfiles SET isread=true WHERE ID='$file_id';");
         }
 
         $h = fopen($file, "r");
@@ -211,23 +208,20 @@ class GrabberTool
             $price = ($price_amazon) ? $price_amazon : $price_tp;
             $operation = (isset($data[172])) ? $data[172] : '';
 
-            echo $asin."-".$price."-".$operation."<hr>";
+          //  echo $asin."-".$price."-".$operation."<hr>";
 
             #####################################################################################
             ###       scrivere nel db prodotti                                          #######
             #####################################################################################
 
             $pos = ftell($h);
-            $db->query("UPDATE myfiles SET pointer='$pos' WHERE ID='$row->ID';");
+            $db->query("UPDATE myfiles SET pointer='$pos' WHERE ID='$file_id';");
             $now = time();
-            $db->query("UPDATE myfiles SET updated= '$now' WHERE ID='$row->ID';");
-          // var_dump($the_big_array[ftell($h)]);
-
-
+            $db->query("UPDATE myfiles SET updated= '$now' WHERE ID='$file_id';");
 
             if ((time()-$startTime>1) or (filesize($file) === intval($pos))) break;
         }
-
+        echo $cursor." - ".((isset($pos)) ? $pos : filesize($file))." of ".filesize($file);
         fclose($h);
     }
 }

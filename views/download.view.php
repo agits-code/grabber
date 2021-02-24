@@ -7,7 +7,7 @@
 </head>
 <body>
 
-<h4> file --- <?= $step; ?> --- progress</h4>
+<h4> file --- <?= $step; ?> --- download progress</h4>
 <nav>
     <ul>
 
