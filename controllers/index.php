@@ -1,6 +1,5 @@
 <?php
-require "GrabberTool.php";
-$db = $app['database'];
+
 
 
 // leggo la pagina

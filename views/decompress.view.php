@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +6,8 @@
     <title>decompress</title>
 </head>
 <body>
+
+<h4> file --- <?= $step; ?> --- progress</h4>
 <nav>
     <ul>
 
@@ -13,8 +16,6 @@
         </li>
     </ul>
 </nav>
-<h2>Decompress :</h2>
-<h3><?= $step; ?></h3>
 
 </body>
 </html>

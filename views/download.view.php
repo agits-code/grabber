@@ -6,6 +6,8 @@
     <title>download</title>
 </head>
 <body>
+
+<h4> file --- <?= $step; ?> --- progress</h4>
 <nav>
     <ul>
 
@@ -14,8 +16,6 @@
         </li>
     </ul>
 </nav>
-<h1>file progress</h1>
-  <h3><?= $step; ?></h3>
 
 </body>
 </html>

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +6,8 @@
     <title>read</title>
 </head>
 <body>
+
+<h4> file --- <?= $step; ?> --- progress</h4>
 <nav>
     <ul>
 
@@ -13,10 +16,6 @@
         </li>
     </ul>
 </nav>
-
-
-<h1>reading progress</h1>
-<h3><?= $step; ?></h3>
 
 </body>
 </html>

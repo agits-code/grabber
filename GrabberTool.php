@@ -90,10 +90,7 @@ class GrabberTool
 
     }
 
-
-
-
-    public static function downloadFile($row,$db) // FUNZIONA!!!!!!!!!
+    public static function downloadFile($row,$db) // FUNZIONA!!!!!!!!! id filesize link cursore
     {
        $count = $db->query_all("SELECT filecursor from myfiles where ID='$row->ID';");
 
@@ -106,7 +103,7 @@ class GrabberTool
         $range = "$init-$end";
         $fileName = self::$path.$row->ID.basename($row->link);
         if (($curl = curl_init($row->link)) === false) {
-            throw new Exception("curl_init error for url $row->filename.");
+            throw new Exception("curl_init error for url $row->link.");
         }
         curl_setopt_array($curl, self::$options);
         curl_setopt($curl, CURLOPT_USERPWD, self::$username.":".self::$password);
@@ -130,7 +127,7 @@ class GrabberTool
         if (curl_exec($curl) === false) {
             fclose($fp);
             unlink($fileName);
-            throw new Exception("curl_exec error for url $row->filename.");
+            throw new Exception("curl_exec error for url $row->link.");
         } elseif (isset($targetDir)) {
             $eurl = curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
             preg_match('#^.*/(.+)$#', $eurl, $match);
@@ -152,7 +149,7 @@ class GrabberTool
 
 
 
-    public static function decompressGz ($row) // ok
+    public static function decompressGz ($row,$db) // ok
     {
 
         $file_name = self::$path.$row->ID.basename($row->link);
@@ -173,7 +170,7 @@ class GrabberTool
             // Both fwrite and gzread and binary-safe
             fwrite($out_file, gzread($file, $buffer_size));
         }
-
+        $db->query("UPDATE myfiles SET decompressed=true WHERE ID='$row->ID';");
 // Files are done, close files
         fclose($out_file);
         gzclose($file);
@@ -207,16 +204,15 @@ class GrabberTool
         $startTime = time();
         while (($data =fgetcsv($h, 0)) !== FALSE)
         {
-          /*  $features=[];
-            for ($c=0; $c < 179; $c++) {
-                $features[$c]= $data[$c] ;
-            }*/
-           $asin = (isset($data[0])) ? $data[0] : '';
-            $price = (isset($data[5])) ? $data[5] : '';
+
+            $asin = (isset($data[0])) ? $data[0] : '';
+            $price_amazon= (isset($data[5])) ? $data[5] : '';
+            $price_tp = (isset($data[40])) ? $data[40] : '';
+            $price = ($price_amazon) ? $price_amazon : $price_tp;
             $operation = (isset($data[172])) ? $data[172] : '';
 
             echo $asin."-".$price."-".$operation."<hr>";
-           // $the_big_array[ftell($h)] = $data;
+
             #####################################################################################
             ###       scrivere nel db prodotti                                          #######
             #####################################################################################
