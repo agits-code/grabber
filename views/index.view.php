@@ -6,6 +6,7 @@
 </head>
 <body>
 <h1>My files</h1>
+<h5> updated <?= date('Y-m-d H:i:s T', $now); ?></h5>
 <nav>
    <ul>
        <li><a href="/about">About</a></li>

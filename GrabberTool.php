@@ -90,11 +90,11 @@ class GrabberTool
 
     }
 
-    public static function downloadFile($file_id,$file_size,$file_link,$db) // FUNZIONA!!!!!!!!!
+    public static function downloadFile($file_id,$file_size,$file_link,$file_cursor) // FUNZIONA!!!!!!!!!
     {
-       $getCursor = $db->query_first("SELECT filecursor from myfiles where ID='$file_id';");
 
-       $cursor = intval($getCursor->filecursor);
+
+       $cursor = intval($file_cursor);
 
         if ($cursor){
             $init =$cursor + 1;
@@ -116,14 +116,11 @@ class GrabberTool
         curl_setopt($curl, CURLOPT_FILE, $fp);
 
         echo "$init : $end of $file_size\n";
-        $db->query("UPDATE myfiles SET filecursor='$end' WHERE ID='$file_id';");
-        $now = time();
-        $db->query("UPDATE myfiles SET updated= '$now' WHERE ID='$file_id';");
+       // $db->query("UPDATE myfiles SET filecursor='$end' WHERE ID='$file_id';");
 
-        if ($file_size === $end) {
-            $db->query("UPDATE myfiles SET downloaded=true WHERE ID='$file_id';");
-
-            }
+      //  if ($file_size === $end) {
+      //      $db->query("UPDATE myfiles SET downloaded=true WHERE ID='$file_id';");
+     //   }
         if (curl_exec($curl) === false) {
             fclose($fp);
             unlink($fileName);
@@ -133,15 +130,11 @@ class GrabberTool
             preg_match('#^.*/(.+)$#', $eurl, $match);
             fclose($fp);
             rename($fileName, "$targetDir{$match[1]}");
-
         } else {
-
-                fclose($fp);
-            }
-
-
-            curl_close($curl);
-
+            fclose($fp);
+        }
+        curl_close($curl);
+        return $end;
     }
 
 
@@ -203,15 +196,53 @@ class GrabberTool
         {
 
             $asin = (isset($data[0])) ? $data[0] : '';
+            $titleStr = (isset($data[2])) ? $data[2] : '';
+            $title= str_replace('\'', '-', $titleStr);
             $price_amazon= (isset($data[5])) ? $data[5] : '';
-            $price_tp = (isset($data[40])) ? $data[40] : '';
-            $price = ($price_amazon) ? $price_amazon : $price_tp;
+            $price_tp = (isset($data[40])) ? $data[40]: '';
+            $price_string = ($price_amazon) ? $price_amazon : $price_tp;
+            $priceStr = str_replace(',', '.', $price_string);
+            $price = filter_var($priceStr, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
             $operation = (isset($data[172])) ? $data[172] : '';
+            $merchantStr = (isset($data[9])) ? $data[9] : '';
+            $merchant = str_replace('\'', '-', $merchantStr);
+            $url = (isset($data[10])) ? $data[10] : '';
+            $product_group = (isset($data[142])) ? $data[142] : '';
+            $brandStr = (isset($data[173])) ? $data[173] : '';
+            $brand = str_replace('\'', '-', $brandStr);
+            $productStr = (isset($data[174])) ? $data[174] : '';
+            $product= str_replace('\'', '-', $productStr);
 
-          //  echo $asin."-".$price."-".$operation."<hr>";
-
+          //  echo $asin."-".$brand."-".$product."-".$title."-".$price."-".$url."-".$merchant."-".$product_group."<hr>";
+            echo $asin."-".$brand."-".$product."-".$title."-".$price."<hr>";
             #####################################################################################
             ###       scrivere nel db prodotti                                          #######
+           $getAsin = $db->query_all("SELECT * FROM amazoncatalog WHERE asin='$asin';");
+
+            if($getAsin) {
+                switch ($operation) {
+                    case 'UPDATE':
+                        echo "da modificare";
+                        break;
+                    case 'REMOVE' :
+                        echo " da cancellare";
+                        break;
+                    default :
+                        echo " da aggiornare";
+                        break;
+                }
+            } else {
+                    switch ($operation) {
+                        case 'ADD':
+                            echo $asin." da aggiungere";
+                            break;
+                        default :
+                            $db->query("INSERT INTO amazoncatalog (asin,brand,product,title,price) VALUES ('{$asin}','{$brand}','{$product}','{$title}','{$price}');");
+
+                            break;
+                }
+                }
+
             #####################################################################################
 
             $pos = ftell($h);

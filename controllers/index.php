@@ -1,5 +1,5 @@
 <?php
-
+//echo date('y-m-d h:m:s T', '1614250962');die();
 
 
 // leggo la pagina
@@ -25,5 +25,6 @@ $db->query("DELETE FROM myfiles WHERE isread=true AND filedate < UNIX_TIMESTAMP(
 
 $files = $db->query_all("select * from myfiles where ((downloaded=false AND filecursor >0) OR (isread=false AND pointer > 0));");
 
+$now = time();
 
 require 'views/index.view.php';
