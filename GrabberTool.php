@@ -116,11 +116,7 @@ class GrabberTool
         curl_setopt($curl, CURLOPT_FILE, $fp);
 
         echo "$init : $end of $file_size\n";
-       // $db->query("UPDATE myfiles SET filecursor='$end' WHERE ID='$file_id';");
 
-      //  if ($file_size === $end) {
-      //      $db->query("UPDATE myfiles SET downloaded=true WHERE ID='$file_id';");
-     //   }
         if (curl_exec($curl) === false) {
             fclose($fp);
             unlink($fileName);
