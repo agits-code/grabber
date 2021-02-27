@@ -7,7 +7,8 @@
 </head>
 <body>
 
-<h4> file --- <?= $step; ?> --- download progress</h4>
+<h4> file --- <?= $step; ?> --- download progress </h4>
+<h5> updated <?= date('Y-m-d H:i:s T', $now); ?></h5>
 <nav>
     <ul>
 
