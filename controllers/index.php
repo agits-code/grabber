@@ -1,6 +1,6 @@
 <?php
 //echo date('y-m-d h:m:s T', '1614250962');die();
-
+$db = App::get('database');
 
 // leggo la pagina
 $elenco = GrabberTool::getItems('https://assoc-datafeeds-eu.amazon.com/datafeed/listFeeds');
