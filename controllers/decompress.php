@@ -1,5 +1,5 @@
 <?php
-
+$db = App::get('database');
     $decompr_file = $db->query_first("SELECT * FROM myfiles WHERE downloaded=true AND decompressed=false ORDER BY FILEDATE ASC LIMIT 1;");
 
     if ($decompr_file)

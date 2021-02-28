@@ -1,5 +1,5 @@
 <?php
-
+$db = App::get('database');
     $downl_file = $db->query_first("SELECT * FROM myfiles WHERE downloaded=false ORDER BY filedate ASC LIMIT 1;");
     if($downl_file) {
         $endCursor =GrabberTool::downloadFile($downl_file->ID,$downl_file->filesize,$downl_file->link, $downl_file->filecursor); //ok passo passo
