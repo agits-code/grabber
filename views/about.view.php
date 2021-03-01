@@ -13,8 +13,11 @@
         </li>
     </ul>
 </nav>
-<h1>About Us</h1>
-  <h3>funziona?</h3>
+<h1>Submit your name</h1>
+<form method="POST" action="/names">
+    <input name="name"></input>
+    <button type="submit">Submit</button>
+</form>
 
 </body>
 </html>
