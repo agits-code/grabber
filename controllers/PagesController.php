@@ -44,9 +44,13 @@ class PagesController
     public function download()
     {
         $db = App::get('database');
-        $downl_file = $db->query_first("SELECT * FROM myfiles WHERE downloaded=false ORDER BY filedate ASC LIMIT 1;");
+        $downl_file = $db->query_first(
+            "SELECT * FROM myfiles WHERE downloaded=false ORDER BY filedate ASC LIMIT 1;"
+        );
         if($downl_file) {
-            $endCursor =GrabberTool::downloadFile($downl_file->ID,$downl_file->filesize,$downl_file->link, $downl_file->filecursor); //ok passo passo
+            $endCursor =GrabberTool::downloadFile(
+                $downl_file->ID,$downl_file->filesize,$downl_file->link, $downl_file->filecursor
+            ); //ok passo passo
             $now = time();
             $db->query("UPDATE myfiles SET updated= '$now' WHERE ID='$downl_file->ID';");
             $db->query("UPDATE myfiles SET filecursor='$endCursor' WHERE ID='$downl_file->ID';");
@@ -57,7 +61,6 @@ class PagesController
             echo "nessun file da scaricare";
             $now = time();
         }
-
 
         $step = ($downl_file) ? ($downl_file->ID." : ".$downl_file->filename) : ("&#10005");
 
@@ -71,7 +74,9 @@ class PagesController
     public function decompress()
     {
         $db = App::get('database');
-        $decompr_file = $db->query_first("SELECT * FROM myfiles WHERE downloaded=true AND decompressed=false ORDER BY FILEDATE ASC LIMIT 1;");
+        $decompr_file = $db->query_first(
+            "SELECT * FROM myfiles WHERE downloaded=true AND decompressed=false ORDER BY FILEDATE ASC LIMIT 1;"
+        );
 
         if ($decompr_file)
         {
@@ -98,7 +103,9 @@ class PagesController
     public function read()
     {
         $db = App::get('database');
-        $read_file = $db->query_first("SELECT * FROM myfiles WHERE decompressed=true AND isread=false ORDER BY FILEDATE ASC LIMIT 1;");
+        $read_file = $db->query_first(
+            "SELECT * FROM myfiles WHERE decompressed=true AND isread=false ORDER BY FILEDATE ASC LIMIT 1;"
+        );
         if($read_file)
         {
             GrabberTool::csvReader($read_file->ID,$read_file->filename, $db);

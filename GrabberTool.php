@@ -122,11 +122,11 @@ class GrabberTool
             fclose($fp);
             unlink($fileName);
             throw new Exception("curl_exec error for url $file_link.");
-        } elseif (isset($targetDir)) {
-            $eurl = curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
-            preg_match('#^.*/(.+)$#', $eurl, $match);
-            fclose($fp);
-            rename($fileName, "$targetDir{$match[1]}");
+  //      } elseif (isset($targetDir)) {
+  //          $eurl = curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
+  //          preg_match('#^.*/(.+)$#', $eurl, $match);
+  //          fclose($fp);
+  //          rename($fileName, "$targetDir{$match[1]}");
         } else {
             fclose($fp);
         }
