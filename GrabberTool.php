@@ -1,5 +1,5 @@
 <?php
-namespace App\Models;
+namespace App\Controllers;
 use DOMDocument;
 use DOMXPath;
 error_reporting(E_STRICT | E_ALL);

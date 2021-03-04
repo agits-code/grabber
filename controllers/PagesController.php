@@ -1,7 +1,6 @@
 <?php
 namespace App\Controllers;
 use App\Core\App;
-use App\Models\GrabberTool;
 class PagesController
 {
     public function home()
