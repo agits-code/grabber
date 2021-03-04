@@ -30,13 +30,13 @@ class PagesController
          // cancello file processati più vecchi di 30 gg
          $db->query("DELETE FROM myfiles WHERE isread=true AND filedate < UNIX_TIMESTAMP() - 3600*24*30;");
 
-         $files = $db->query_all("select * from myfiles where ((downloaded=false AND filecursor >0) OR (isread=false AND pointer > 0));");
+        // $files = $db->query_all("select * from myfiles where ((downloaded=false AND filecursor >0) OR (isread=false AND pointer > 0));");
 
          $now = time();
 
          //require 'views/index.view.php';
         return view('index', [
-            'files' => $files,
+
             'now' => $now
         ]);
 
@@ -94,7 +94,7 @@ class PagesController
 
         $step = ($decompr_file) ? ($decompr_file->ID." : ".$decompr_file->filename) : ("&#10005");
 
-        //require "views/decompress.view.php";
+
         return view('decompress', [
             'now' => $now,
             'step' => $step
@@ -123,7 +123,7 @@ class PagesController
 
         $step = ($read_file) ? ($read_file->ID." : ".$read_file->filename) : ("&#10005");
 
-        //require "views/read.view.php";
+
         return view('read', [
             'now' => $now,
             'step' => $step
@@ -133,7 +133,7 @@ class PagesController
     public function about()
     {
         //var_dump(trim($_SERVER['REQUEST_URI'],"/"));
-        //require 'views/about.view.php';
+
         return view('about');
     }
 
@@ -142,6 +142,6 @@ class PagesController
         //var_dump($_SERVER);
         //var_dump($_REQUEST);
         var_dump("you typed " . $_POST['name']);
-       // header('Location: /about');
+       
     }
 }

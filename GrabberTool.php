@@ -2,6 +2,8 @@
 namespace App\Controllers;
 use DOMDocument;
 use DOMXPath;
+use Exception;
+
 error_reporting(E_STRICT | E_ALL);
 class GrabberTool
 {
@@ -21,8 +23,8 @@ class GrabberTool
 
     public static function fetchContent($url)
     {
-        if (($curl = curl_init($url)) == false) {
-            throw new Exception("curl_init error for url $url.");
+        if (($curl = curl_init($url)) === false) {
+            throw new \RuntimeException("curl_init error for url $url.");
         }
 
         curl_setopt($curl, CURLOPT_HTTPHEADER, array(

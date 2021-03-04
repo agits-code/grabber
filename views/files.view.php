@@ -13,21 +13,21 @@
 
 <h5> updated <?= date('Y-m-d H:i:s T', $now); ?></h5>
 <nav>
-   <ul>
-       <li><a href="/about">About</a></li>
+    <ul>
+        <li><a href="/about">About</a></li>
 
-       <li><a href="/download" target="_blank">Download</a></li>
+        <li><a href="/download" target="_blank">Download</a></li>
 
-       <li><a href="/decompress">Decompress</a></li>
+        <li><a href="/decompress">Decompress</a></li>
 
-       <li><a href="/read" target="_blank">Read</a></li>
-       <li><a href="/files">Files in progress</a></li>
+        <li><a href="/read" target="_blank">Read</a></li>
+        <li><a href="/">Home</a></li>
 
 
-   </ul>
+    </ul>
 </nav>
 <h1>My files</h1>
-<!--<h3> in progress</h3>
+<h3> in progress</h3>
  <ul>
      <?php foreach ($files as $file) : ?>
      <ol>
@@ -47,7 +47,7 @@
      <?php endforeach; ?>
 
 
- </ul> -->
+ </ul>
 
 </body>
 </html>
