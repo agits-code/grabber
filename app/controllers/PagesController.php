@@ -17,7 +17,9 @@ class PagesController
         {
             if(!(strpos($item['name'],'.xml.')))
             {
-                $exists = $db->query_all("SELECT * From myfiles WHERE filename='{$item['name']}' AND filedate='{$item['date']}';");
+                $exists = $db->query_all(
+                    "SELECT * From myfiles WHERE filename='{$item['name']}' AND filedate='{$item['date']}';"
+                );
                 if (!$exists) {
 
                     $db->query("INSERT INTO myfiles (filename , filedate , filesize , md5 , link )
@@ -142,6 +144,6 @@ class PagesController
         //var_dump($_SERVER);
         //var_dump($_REQUEST);
         var_dump("you typed " . $_POST['name']);
-       
+
     }
 }

@@ -1,5 +1,5 @@
 <?php
-namespace App\Controllers;
+namespace App\Models;
 use DOMDocument;
 use DOMXPath;
 use Exception;

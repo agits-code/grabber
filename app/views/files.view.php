@@ -6,11 +6,6 @@
 </head>
 <body>
 
-
-
-
-
-
 <h5> updated <?= date('Y-m-d H:i:s T', $now); ?></h5>
 <nav>
     <ul>
