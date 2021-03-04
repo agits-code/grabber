@@ -8,9 +8,13 @@ App::bind('database',new QueryBuilder(
 function view($name, $data=[])
 {
     extract($data,0);
-    return require "views/{$name}.view.php";
+    return require "app/views/{$name}.view.php";
 }
 
+function redirect($path)
+{
+    header("Location: /{$path}");
+}
 
 //$db = App::get('database');
 
