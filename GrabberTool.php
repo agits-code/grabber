@@ -1,5 +1,7 @@
 <?php
-
+namespace App\Controllers;
+use DOMDocument;
+use DOMXPath;
 error_reporting(E_STRICT | E_ALL);
 class GrabberTool
 {
@@ -44,14 +46,16 @@ class GrabberTool
     }
 
     public static function getItems($url) {
-        $content = self::fetchContent($url);
+        try {
+            $content = self::fetchContent($url);
+        } catch (Exception $e) {
+        }
 
-            $dom = new DOMDocument();
-            libxml_use_internal_errors(true);
-            $dom->loadHTML($content);
-            libxml_clear_errors();
-            $xpath = new DOMXpath($dom);
-
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML($content);
+        libxml_clear_errors();
+        $xpath = new DOMXpath($dom);
 
         foreach ($xpath->query("//tr") as $element)
         {
@@ -64,7 +68,6 @@ class GrabberTool
             }
             if(is_object($els->item(1))) {
 
-              //  self::$file_API_amazon['date'] = date("Y-m-d H:i:s",strtotime($els->item(1)->nodeValue));
                 self::$file_API_amazon['date'] =strtotime($els->item(1)->nodeValue);
             }
             if(is_object($els->item(2))) {
@@ -121,11 +124,11 @@ class GrabberTool
             fclose($fp);
             unlink($fileName);
             throw new Exception("curl_exec error for url $file_link.");
-        } elseif (isset($targetDir)) {
-            $eurl = curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
-            preg_match('#^.*/(.+)$#', $eurl, $match);
-            fclose($fp);
-            rename($fileName, "$targetDir{$match[1]}");
+  //      } elseif (isset($targetDir)) {
+  //          $eurl = curl_getinfo($curl, CURLINFO_EFFECTIVE_URL);
+  //          preg_match('#^.*/(.+)$#', $eurl, $match);
+  //          fclose($fp);
+  //          rename($fileName, "$targetDir{$match[1]}");
         } else {
             fclose($fp);
         }
@@ -188,7 +191,7 @@ class GrabberTool
         fseek($h,$cursor);
 
         $startTime = time();
-        while (($data =fgetcsv($h, 0)) !== FALSE)
+        while (($data =fgetcsv($h)) !== FALSE)
         {
 
             $asin = (isset($data[0])) ? $data[0] : '';
@@ -196,9 +199,11 @@ class GrabberTool
             $title= str_replace('\'', '-', $titleStr);
             $price_amazon= (isset($data[5])) ? $data[5] : '';
             $price_tp = (isset($data[40])) ? $data[40]: '';
-            $price_string = ($price_amazon) ? $price_amazon : $price_tp;
+            $price_string = ($price_amazon) ?: $price_tp;
             $priceStr = str_replace(',', '.', $price_string);
-            $price = filter_var($priceStr, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+           // $price = filter_var($priceStr, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            $price = (filter_var($priceStr, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION)) ? filter_var($priceStr, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION) : 0;
+           echo $price;
             $operation = (isset($data[172])) ? $data[172] : '';
             $merchantStr = (isset($data[9])) ? $data[9] : '';
             $merchant = str_replace('\'', '-', $merchantStr);
@@ -210,12 +215,12 @@ class GrabberTool
             $product= str_replace('\'', '-', $productStr);
 
           //  echo $asin."-".$brand."-".$product."-".$title."-".$price."-".$url."-".$merchant."-".$product_group."<hr>";
-            echo $asin."-".$brand."-".$product."-".$title."-".$price."<hr>";
+           // echo $asin."-".$brand."-".$product."-".$title."-".$price."<hr>";
             #####################################################################################
             ###       scrivere nel db prodotti                                          #######
-           $getAsin = $db->query_all("SELECT * FROM amazoncatalog WHERE asin='$asin';");
-
-            if($getAsin) {
+           $getAsin = $db->query_first("SELECT * FROM amazoncatalog WHERE asin='$asin';");
+          // echo $getAsin;
+            if($getAsin AND $asin !== "asin") {
                 switch ($operation) {
                     case 'UPDATE':
                         echo "da modificare";
@@ -227,17 +232,18 @@ class GrabberTool
                         echo " da aggiornare";
                         break;
                 }
-            } else {
-                    switch ($operation) {
-                        case 'ADD':
-                            echo $asin." da aggiungere";
-                            break;
-                        default :
-                            $db->query("INSERT INTO amazoncatalog (asin,brand,product,title,price) VALUES ('{$asin}','{$brand}','{$product}','{$title}','{$price}');");
+            } else if($asin !== "asin"){
 
-                            break;
+                switch ($operation) {
+                    case 'ADD':
+                      //  echo $asin . " da aggiungere";
+                        break;
+                    default :
+                        $db->query("INSERT INTO amazoncatalog (asin,brand,product,title,price) VALUES ('{$asin}','{$brand}','{$product}','{$title}','{$price}');");
+
+                        break;
                 }
-                }
+            }
 
             #####################################################################################
 

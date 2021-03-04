@@ -1,0 +1,13 @@
+{
+  "autoload": {
+    "classmap": [
+      "./"
+    ]
+  },
+  "require": {
+    "ext-curl": "*",
+    "ext-libxml": "*",
+    "ext-dom": "*",
+    "ext-zlib": "*"
+  }
+}

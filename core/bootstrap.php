@@ -1,14 +1,16 @@
 <?php
+use App\Core\App;
+App::bind('config',require 'config.php');
+App::bind('database',new QueryBuilder(
+    Connection::make(App::get('config')['database'])
+));
 
-$app = [];
+function view($name, $data=[])
+{
+    extract($data,0);
+    return require "views/{$name}.view.php";
+}
 
-$app['config'] = require 'config.php';
-require 'GrabberTool.php';
-require 'core/Router.php';
-require 'core/Request.php';
-require 'core/database/Connection.php';
-require 'core/database/QueryBuilder.php';
 
-$db = $app['database'] = new QueryBuilder(
-    Connection::make($app['config']['database'])
-);
+//$db = App::get('database');
+

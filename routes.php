@@ -1,9 +1,10 @@
 <?php
 
-$router->define([
-    '' => 'controllers/index.php',
-    'about' => 'controllers/about.php',
-    'download' => 'controllers/download.php',
-    'decompress' => 'controllers/decompress.php',
-    'read' => 'controllers/read.php'
-]);
+
+$router->get( '' , 'PagesController@home');
+$router->get('about' , 'PagesController@about');
+$router->get( 'download' , 'PagesController@download');
+$router->get('decompress' , 'PagesController@decompress');
+$router->get( 'read' , 'PagesController@read');
+$router->post('names' , 'PagesController@names');
+
